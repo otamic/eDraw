@@ -30,7 +30,7 @@ ArrayPtr Array::at(const NumList & index) {
     if (CheckVec(size_, index)) {
         auto res = std::make_shared<Array>();
         res->data_ = data_;
-        res->bias_ = 0;
+        res->bias_ = bias_;
 
         int len = 1, i = 0, j = 0;
         while (i < (size_.size() - index.size())) {

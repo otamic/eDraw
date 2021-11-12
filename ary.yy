@@ -48,6 +48,8 @@ statement
         if (res.type_ == Element::NUM) std::cout << "= " << res.n_ << std::endl;
         else res.a_.print();
         std::cout << "> ";
+
+        delete $1;
     }
     ;
 
@@ -60,6 +62,8 @@ declaration
         }
         Symbol::add(*$1, std::shared_ptr<Symbol>($3));
         std::cout << "> ";
+
+        delete $1;
     }
     ;
 
@@ -72,8 +76,10 @@ initializer
             (*array)(res.a_);
             $$ = new ArraySymbol(array);
         }
+
+        delete $1;
     }
-    | INT '[' expression_list ']' { $$ = new ArraySymbol(std::make_shared<Array>(*$3)); }
+    | INT '[' expression_list ']' { $$ = new ArraySymbol(std::make_shared<Array>(*$3)); delete $3; }
     ;
 
 expression_list
@@ -83,12 +89,16 @@ expression_list
         if (res.type_ == Element::NUM) list->push_back(res.n_);
         else list->push_back(int(res.a_));
         $$ = list;
+        
+        delete $1;
     }
     | expression ',' expression_list { 
         Element res = $1->eval();
         if (res.type_ == Element::NUM) $3->push_back(res.n_);
         else $3->push_back(int(res.a_));
         $$ = $3;
+
+        delete $1;
     }
     ;
 
@@ -116,6 +126,8 @@ primary_expression
             exit(1);
         }
         $$ = new SymRef(symbol); 
+
+        delete $1;
     }
     ;
 %%
