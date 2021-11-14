@@ -1,19 +1,27 @@
-%option noyywrap
 %{
     #include <string>
-    #include <cstdlib>
-    #include "m_type.h"
-    #include "ary.tab.hpp"
+    #include "m_scanner.h"
+    #undef YY_DECL
+    #define YY_DECL int MC::Scanner::yylex(MC::Parser::semantic_type * const lval, MC::Parser::location_type * loc)
 
-    #define YY_DECL int yylex(yy::Ary::semantic_type * yylval, yy::Ary::location_type * yylloc)
-    #define YY_USER_ACTION yylloc->columns(yyleng);
+    using token = MC::Parser::token;
 
-    using token = yy::Ary::token;    
+    #define yytermiante() return(token::END)
+
+    #define YY_NO_UNISTD_H
+
+    #define YY_USER_ACTION loc->step(); loc->columns(yyleng);
 %}
+
+%option debug
+%option nodefault
+%option yyclass="MC::Scanner"
+%option noyywrap
+%option c++
 
 %%
 %{
-    yylloc->step();
+    yylval = lval;
 %}
 
 "+" |
@@ -32,9 +40,9 @@
 
 [a-zA-Z][a-zA-Z0-9]* { yylval->symbol = new std::string(yytext); return token::IDENTIFIER; }
 [0-9]+ { yylval->num = atoi(yytext); return token::NUMBER; }
-\n { yylloc->lines(1); return token::EOL; }
+\n { loc->lines(1); return token::EOL; }
 "//".* |
-[ \t] { yylloc->step(); }
+[ \t] { loc->step(); }
 . { printf("Mystery character %c\n", *yytext); }
 
 %%

@@ -1,13 +1,29 @@
 %language "C++"
-%defines
-%locations
+%defines 
+%define api.namespace {MC}
+%define api.parser.class {Parser}
 
-%define api.parser.class { Ary }
+%code requires{
+    namespace MC {
+        class Driver;
+        class Scanner;
+    }
+}
+
+%parse-param { Scanner &scanner }
+%parse-param { Driver &driver }
 
 %{
     #include <iostream>    
+    #include <fstream>
     #include "m_type.h"
+    #include "m_driver.h"
+
+    #undef yylex
+    #define yylex scanner.yylex
 %}
+
+%define parse.assert
 
 %union {
     Ast * ast;
@@ -21,8 +37,6 @@
 %token <symbol> IDENTIFIER
 %token EOL INT ASSIGN
 
-
-
 %right '='
 %left '+' '-'
 %left '*' '/'
@@ -30,9 +44,7 @@
 %type <array> expression_list
 %type <s> initializer
 
-%{
-    extern int yylex(yy::Ary::semantic_type * yylval, yy::Ary::location_type * yyloc);
-%}
+%locations
 
 %%
 statement_list
@@ -131,14 +143,9 @@ primary_expression
     }
     ;
 %%
-int main() {
-    std::cout << "> ";
-    yy::Ary parser;
-    return parser.parse();
-}
 
-namespace yy {
-    void Ary::error(location const &loc, const std::string & s) {
+namespace MC {
+    void Parser::error(location const &loc, const std::string & s) {
         std::cerr << "error at " << loc << ": " << s << std::endl;
     }
 }
