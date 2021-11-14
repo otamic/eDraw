@@ -31,8 +31,9 @@ public:
     Array operator*(const Array & a);
     Array operator/(const Array & a);
 
+    friend std::ostream& operator<<(std::ostream& os, const Array& array);
+
     operator int() const { return data_[bias_]; }
-    void print();
 
 private:
     std::shared_ptr<int[]> data_;
@@ -84,6 +85,8 @@ public:
     Element operator-(const Element & a);
     Element operator*(const Element & a);
     Element operator/(const Element & a);
+
+    friend std::ostream& operator<<(std::ostream& os, const Element & element);
 
     enum Type {NUM, ARRAY} type_;
     struct {

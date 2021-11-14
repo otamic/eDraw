@@ -35,6 +35,13 @@
 "," |
 "=" { return yytext[0]; }
 
+">"  { yylval->num = 1; return token::CMP; }
+"<"  { yylval->num = 2; return token::CMP; }
+"!=" { yylval->num = 3; return token::CMP; }
+"==" { yylval->num = 4; return token::CMP; }
+">=" { yylval->num = 5; return token::CMP; }
+"<=" { yylval->num = 6; return token::CMP; }
+
 ":=" { return token::ASSIGN; }
 "int" { return token::INT; }
 

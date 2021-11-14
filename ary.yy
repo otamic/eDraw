@@ -37,6 +37,7 @@
 %token <symbol> IDENTIFIER
 %token EOL INT ASSIGN PRINT
 
+%nonassoc <num> CMP
 %right '='
 %left '+' '-'
 %left '*' '/'
@@ -58,8 +59,7 @@ statement
     | expression EOL { $1->eval(); delete $1; }
     | PRINT expression EOL {
         Element res = $2->eval();
-        if (res.type_ == Element::NUM) std::cout << "= " << res.n_ << std::endl;
-        else res.a_.print();
+        std::cout << res << std::endl;
 
         delete $2;
     }

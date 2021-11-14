@@ -124,33 +124,33 @@ Array Array::operator/(const Array &a) {
     return result;
 }
 
-void Array::print() {
+std::ostream& operator<<(std::ostream& os, const Array& array) {
     std::stack<int> in;
-    int j = int(size_.size()) - 1, index = 0;
+    int j = int(array.size_.size()) - 1, index = 0;
     in.push(0);
-    std::cout << "[";
+    os << "[";
     while (!in.empty()) {
-        if (in.top() == size_[j]) {
-            std::cout << "]";
+        if (in.top() == array.size_[j]) {
+            os << "]";
             in.pop();
             if (!in.empty()) {
                 in.top()++; j++;
-                if (in.top() != size_[j]) std::cout << ",";
+                if (in.top() != array.size_[j]) os << ",";
             }
             continue;
         }
         if (j == 0) {
-            std::cout << data_[bias_ + index++];
+            os << array.data_[array.bias_ + index++];
             in.top()++;
-            if (in.top() < size_[j]) std::cout << ",";
+            if (in.top() < array.size_[j]) os << ",";
         }
         else {
-            std::cout << "[";
+            os << "[";
             in.push(0);
             j--;
         }
     }
-    std::cout << std::endl;
+    return os;
 }
 
 /*
@@ -220,6 +220,16 @@ Element Element::operator/(const Element &a) {
         result.a_(a_ / a.a_);
     }
     return result;
+}
+
+std::ostream& operator<<(std::ostream& os, const Element & element) {
+    switch (element.type_) {
+        case Element::NUM:
+            os << "num: " << element.n_; break;
+        case Element::ARRAY:
+            os << "array: " << element.a_; break;
+    }
+    return os;
 }
 
 Element::operator int() const {
