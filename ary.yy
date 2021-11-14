@@ -35,7 +35,7 @@
 
 %token <num> NUMBER
 %token <symbol> IDENTIFIER
-%token EOL INT ASSIGN
+%token EOL INT ASSIGN PRINT
 
 %right '='
 %left '+' '-'
@@ -53,15 +53,15 @@ statement_list
     ;
 
 statement
-    : EOL { std::cout << "> "; }
+    : EOL 
     | declaration EOL
-    | expression EOL {
-        Element res = $1->eval();
+    | expression EOL { $1->eval(); delete $1; }
+    | PRINT expression EOL {
+        Element res = $2->eval();
         if (res.type_ == Element::NUM) std::cout << "= " << res.n_ << std::endl;
         else res.a_.print();
-        std::cout << "> ";
 
-        delete $1;
+        delete $2;
     }
     ;
 
@@ -73,7 +73,6 @@ declaration
             exit(1);
         }
         Symbol::add(*$1, std::shared_ptr<Symbol>($3));
-        std::cout << "> ";
 
         delete $1;
     }
