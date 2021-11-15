@@ -124,6 +124,22 @@ Array Array::operator/(const Array &a) {
     return result;
 }
 
+bool Array::operator==(const Array &a) {
+    if (size_ != a.size_) return false;
+
+    int len = 1;
+    for (int num: size_) len *= num;
+    for (int i = 0; i < len; i++)
+        if (data_[i + bias_] != a.data_[i + a.bias_])
+            return false;
+
+    return true;
+}
+
+bool Array::operator!=(const Array &a) {
+    return !(*this == a);
+}
+
 std::ostream& operator<<(std::ostream& os, const Array& array) {
     std::stack<int> in;
     int j = int(array.size_.size()) - 1, index = 0;
@@ -172,6 +188,10 @@ void Symbol::add(const std::string & name, const std::shared_ptr<Symbol> & symbo
  */
 Element Element::operator+(const Element &a) {
     Element result;
+    if (type_ == BOOL || a.type_ == BOOL) {
+        std::cerr << "can't add a bool" << std::endl;
+        exit(1);
+    }
     if (type_ == NUM || a.type_ == NUM) {
         result.type_ = NUM;
         result.n_ = int(*this) + int(a);
@@ -185,6 +205,10 @@ Element Element::operator+(const Element &a) {
 
 Element Element::operator-(const Element &a) {
     Element result;
+    if (type_ == BOOL && a.type_ == BOOL) {
+        std::cerr << "can't sub a bool" << std::endl;
+        exit(1);
+    }
     if (type_ == NUM || a.type_ == NUM) {
         result.type_ = NUM;
         result.n_ = int(*this) - int(a);
@@ -198,6 +222,10 @@ Element Element::operator-(const Element &a) {
 
 Element Element::operator*(const Element &a) {
     Element result;
+    if (type_ == BOOL || a.type_ == BOOL) {
+        std::cerr << "can't mul a bool" << std::endl;
+        exit(1);
+    }
     if (type_ == NUM || a.type_ == NUM) {
         result.type_ = NUM;
         result.n_ = int(*this) * int(a);
@@ -211,6 +239,10 @@ Element Element::operator*(const Element &a) {
 
 Element Element::operator/(const Element &a) {
     Element result;
+    if (type_ == BOOL || a.type_ == BOOL) {
+        std::cerr << "can't div a bool" << std::endl;
+        exit(1);
+    }
     if (type_ == NUM || a.type_ == NUM) {
         result.type_ = NUM;
         result.n_ = int(*this) / int(a);
@@ -222,19 +254,98 @@ Element Element::operator/(const Element &a) {
     return result;
 }
 
+Element Element::operator>(const Element & a) {
+    Element result;
+    result.type_ = BOOL;
+    if (type_ == BOOL || a.type_ == BOOL) {
+        std::cerr << "can't compare a bool" << std::endl;
+        exit(1);
+    }
+    if (int(*this) > int(a)) result.n_ = 1;
+    else result.n_ = 0;
+    return result;
+}
+
+Element Element::operator<(const Element & a) {
+    Element result;
+    result.type_ = BOOL;
+    if (type_ == BOOL || a.type_ == BOOL) {
+        std::cerr << "can't compare a bool" << std::endl;
+        exit(1);
+    }
+    if (int(*this) < int(a)) result.n_ = 1;
+    else result.n_ = 0;
+    return result;
+}
+
+Element Element::operator!=(const Element & a) {
+    Element result = (*this == a);
+    result.n_ = result.n_ == 0 ? 1 : 0;
+    return result;
+}
+
+Element Element::operator==(const Element & a) {
+    Element result;
+    result.type_ = BOOL;
+    if (type_ == BOOL || a.type_ == BOOL) {
+        std::cerr << "can't compare a bool" << std::endl;
+        exit(1);
+    }
+    if (type_ == NUM || a.type_ == NUM) {
+        if (int(*this) == int(a)) result.n_ = 1;
+        else result.n_ = 0;
+    }
+    else {
+        if (a_ == a.a_) result.n_ = 1;
+        else result.n_ = 0;
+    }
+    return result;
+}
+
+Element Element::operator>=(const Element & a) {
+    Element result;
+    result.type_ = BOOL;
+    if (type_ == BOOL || a.type_ == BOOL) {
+        std::cerr << "can't compare a bool" << std::endl;
+        exit(1);
+    }
+    if (int(*this) >= int(a)) result.n_ = 1;
+    else result.n_ = 0;
+    return result;
+}
+
+Element Element::operator<=(const Element & a) {
+    Element result;
+    result.type_ = BOOL;
+    if (type_ == BOOL || a.type_ == BOOL) {
+        std::cerr << "can't compare a bool" << std::endl;
+        exit(1);
+    }
+    if (int(*this) <= int(a)) result.n_ = 1;
+    else result.n_ = 0;
+    return result;
+}
+
 std::ostream& operator<<(std::ostream& os, const Element & element) {
     switch (element.type_) {
         case Element::NUM:
             os << "num: " << element.n_; break;
         case Element::ARRAY:
             os << "array: " << element.a_; break;
+        case Element::BOOL:
+            os << "bool: ";
+            if (element.n_ == 0) os << "false";
+            else os << "true"; break;
     }
     return os;
 }
 
 Element::operator int() const {
-    if (type_ == NUM) return n_;
-    else return int(a_);
+    switch (type_) {
+        case NUM:
+        case BOOL: return n_;
+        case ARRAY: return a_;
+    }
 }
 
 Element Ast::eval() {
@@ -243,6 +354,12 @@ Element Ast::eval() {
         case '-': return left_->eval() - right_->eval();
         case '*': return left_->eval() * right_->eval();
         case '/': return left_->eval() / right_->eval();
+        case '1': return left_->eval() > right_->eval();
+        case '2': return left_->eval() < right_->eval();
+        case '3': return left_->eval() != right_->eval();
+        case '4': return left_->eval() == right_->eval();
+        case '5': return left_->eval() >= right_->eval();
+        case '6': return left_->eval() <= right_->eval();
         default : return {};
     }
 }
@@ -263,15 +380,24 @@ Element NumArray::eval() {
 
 Element SymRef::eval() {
     Element result;
-    if (symbol_->type_ == 'n') {
-        auto numSymbol = std::dynamic_pointer_cast<NumSymbol>(symbol_);
-        result.type_ = Element::NUM;
-        result.n_ = numSymbol->data_;
-    }
-    else {
-        auto arraySymbol = std::dynamic_pointer_cast<ArraySymbol>(symbol_);
-        result.type_ = Element::ARRAY;
-        result.a_(*arraySymbol->data_);
+    switch(symbol_->type_) {
+        case 'n': {
+            auto numSymbol = std::dynamic_pointer_cast<NumSymbol>(symbol_);
+            result.type_ = Element::NUM;
+            result.n_ = numSymbol->data_;
+            break;
+        }
+        case 'a': {
+            auto arraySymbol = std::dynamic_pointer_cast<ArraySymbol>(symbol_);
+            result.type_ = Element::ARRAY;
+            result.a_(*arraySymbol->data_);
+            break;
+        }
+        case 'b': {
+            auto boolSymbol = std::dynamic_pointer_cast<BoolSymbol>(symbol_);
+            result.type_ = Element::BOOL;
+            result.n_ = boolSymbol->data_;
+        }
     }
     return result;
 }
@@ -283,8 +409,8 @@ Element ArrayRef::eval() {
         exit(1);
     }
     auto symRef = std::dynamic_pointer_cast<SymRef>(left_);
-    if (symRef->symbol_->type_ == 'n') {
-        std::cout << "a num can't be referred" << std::endl;
+    if (symRef->symbol_->type_ == 'n' || symRef->symbol_->type_ == 'b') {
+        std::cout << "only array can be referred" << std::endl;
         exit(1);
     }
     else {
@@ -301,19 +427,27 @@ Element SymAsgn::eval() {
         auto symRef = std::dynamic_pointer_cast<SymRef>(left_);
         if (symRef->symbol_->type_ == 'n') {
             auto numSymbol = std::dynamic_pointer_cast<NumSymbol>(symRef->symbol_);
-            // numSymbol->data_ = value.type_ == Element::NUM ? value.n_: value.a_;
             if (value.type_ == Element::NUM) numSymbol->data_ = value.n_;
             else numSymbol->data_ = value.a_;
             result.type_ = Element::NUM;
             result.n_ = numSymbol->data_;
         }
-        else {
+        else if (symRef->symbol_->type_ == 'a'){
             auto arraySymbol = std::dynamic_pointer_cast<ArraySymbol>(symRef->symbol_);
-            // *arraySymbol->data_ = value.type_ == Element::ARRAY ? value.a_ : value.n_;
             if (value.type_ == Element::ARRAY) *arraySymbol->data_ = value.a_;
             else *arraySymbol->data_ = value.n_;
             result.type_ = Element::ARRAY;
             result.a_(*arraySymbol->data_);
+        }
+        else if (symRef->symbol_->type_ == 'b'){
+            auto boolSymbol = std::dynamic_pointer_cast<BoolSymbol>(symRef->symbol_);
+            if (value.type_ == Element::BOOL) boolSymbol->data_ = value.n_;
+            else {
+                std::cerr << "can't assign a bool with other type" << std::endl;
+                exit(1);
+            }
+            result.type_ = Element::BOOL;
+            result.n_ = boolSymbol->data_;
         }
     }
     else if (left_->type_ == 'M') {
@@ -321,7 +455,11 @@ Element SymAsgn::eval() {
         auto temp = arrayRef->eval();
         // temp.a_ = value.type_ == Element::ARRAY ? value.a_ : value.n_;
         if (value.type_ == Element::ARRAY) temp.a_ = value.a_;
-        else temp.a_ = value.n_;
+        else if (value.type_ == Element::NUM) temp.a_ = value.n_;
+        else {
+            std::cerr << "can't assign a bool with other type" << std::endl;
+            exit(1);
+        }
         result.type_ = Element::ARRAY;
         result.a_(temp.a_);
     }

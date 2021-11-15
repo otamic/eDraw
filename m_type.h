@@ -31,6 +31,9 @@ public:
     Array operator*(const Array & a);
     Array operator/(const Array & a);
 
+    bool operator==(const Array & a);
+    bool operator!=(const Array & a);
+
     friend std::ostream& operator<<(std::ostream& os, const Array& array);
 
     operator int() const { return data_[bias_]; }
@@ -71,6 +74,12 @@ public:
     ArrayPtr data_;
 };
 
+class BoolSymbol: public Symbol {
+public:
+    BoolSymbol(int num): Symbol('b'), data_(num) {}
+    int data_;
+};
+
 /*
  * Abstract Binary Tree
  */
@@ -86,9 +95,16 @@ public:
     Element operator*(const Element & a);
     Element operator/(const Element & a);
 
+    Element operator>(const Element & a);
+    Element operator<(const Element & a);
+    Element operator!=(const Element & a);
+    Element operator==(const Element & a);
+    Element operator>=(const Element & a);
+    Element operator<=(const Element & a);
+
     friend std::ostream& operator<<(std::ostream& os, const Element & element);
 
-    enum Type {NUM, ARRAY} type_;
+    enum Type {NUM, ARRAY, BOOL} type_;
     struct {
         int n_;
         Array a_;
