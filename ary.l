@@ -33,7 +33,9 @@
 "[" |
 "]" |
 "," |
-"=" { return yytext[0]; }
+"=" |
+"{" |
+"}" { return yytext[0]; }
 
 ">"  { yylval->num = '1'; return token::CMP; }
 "<"  { yylval->num = '2'; return token::CMP; }
@@ -46,6 +48,9 @@
 "int" { return token::INT; }
 
 "print" { return token::PRINT; }
+
+"if" { return token::IF; }
+"while" { return token::WHILE; }
 
 [a-zA-Z][a-zA-Z0-9]* { yylval->symbol = new std::string(yytext); return token::IDENTIFIER; }
 [0-9]+ { yylval->num = atoi(yytext); return token::NUMBER; }

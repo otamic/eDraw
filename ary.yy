@@ -34,7 +34,7 @@
 
 %token <num> NUMBER
 %token <symbol> IDENTIFIER
-%token EOL INT ASSIGN PRINT
+%token EOL INT ASSIGN PRINT IF WHILE
 
 %nonassoc <num> CMP
 %right '='
@@ -60,6 +60,8 @@ statement
     | declaration EOL { $$ = $1; }
     | expression EOL { $$ = $1; }
     | PRINT expression EOL { $$ = new PrintCal(std::shared_ptr<Ast>($2)); }
+    | IF expression '{' statement_list '}' { $$ = new IfSta(std::shared_ptr<Ast>($2), std::shared_ptr<Ast>($4)); }
+    | WHILE expression '{' statement_list '}' { $$ = new WhileSta(std::shared_ptr<Ast>($2), std::shared_ptr<Ast>($4)); }
     ;
 
 declaration

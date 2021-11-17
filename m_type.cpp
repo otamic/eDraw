@@ -336,6 +336,16 @@ Element Element::operator<=(const Element & a) {
     return result;
 }
 
+Element &Element::operator=(const Element &a) {
+    type_ = a.type_;
+    switch (type_) {
+        case NUM:
+        case BOOL: n_ = a.n_; break;
+        case ARRAY: a_(a.a_);
+    }
+    return *this;
+}
+
 std::ostream& operator<<(std::ostream& os, const Element & element) {
     switch (element.type_) {
         case Element::NUM:
@@ -515,4 +525,28 @@ Element PrintCal::eval() {
     Element res = left_->eval();
     std::cout << res << std::endl;
     return res;
+}
+
+Element IfSta::eval() {
+    Element exp = left_->eval();
+    if (exp.type_ != Element::BOOL) {
+        std::cerr << "invalid if statement" << std::endl;
+        exit(1);
+    }
+    if (exp.n_ == 1)
+        right_->eval();
+    return EMPTY;
+}
+
+Element WhileSta::eval() {
+    Element exp = left_->eval();
+    if (exp.type_ != Element::BOOL) {
+        std::cerr << "invalid while statement" << std::endl;
+        exit(1);
+    }
+    while(exp.n_ == 1) {
+        right_->eval();
+        exp = left_->eval();
+    }
+    return EMPTY;
 }

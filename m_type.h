@@ -102,6 +102,8 @@ public:
     Element operator>=(const Element & a);
     Element operator<=(const Element & a);
 
+    Element& operator=(const Element & a);
+
     friend std::ostream& operator<<(std::ostream& os, const Element & element);
 
     enum Type {NUM, ARRAY, BOOL} type_;
@@ -163,15 +165,28 @@ public:
 
 class SymDecl : public Ast {
 public:
-    SymDecl(std::string name, AstPtr value):Ast('D', nullptr, nullptr), name_(std::move(name)), value_(std::move(value)) {}
-    Element eval();
     std::string name_;
     AstPtr value_;
+
+    SymDecl(std::string name, AstPtr value):Ast('D', nullptr, nullptr), name_(std::move(name)), value_(std::move(value)) {}
+    Element eval();
 };
 
 class PrintCal : public Ast {
 public:
     PrintCal(AstPtr exp):Ast('C', std::move(exp), nullptr) {}
+    Element eval();
+};
+
+class IfSta : public Ast {
+public:
+    IfSta(AstPtr expression, AstPtr statements):Ast('I', std::move(expression), std::move(statements)) {}
+    Element eval();
+};
+
+class WhileSta : public Ast {
+public:
+    WhileSta(AstPtr expression, AstPtr statements):Ast('W', std::move(expression), std::move(statements)) {}
     Element eval();
 };
 
