@@ -52,6 +52,9 @@
 "if" { return token::IF; }
 "while" { return token::WHILE; }
 
+"and" { return token::AND; }
+"or"  { return token::OR; }
+
 [a-zA-Z][a-zA-Z0-9]* { yylval->symbol = new std::string(yytext); return token::IDENTIFIER; }
 [0-9]+ { yylval->num = atoi(yytext); return token::NUMBER; }
 \n { loc->lines(1); return token::EOL; }

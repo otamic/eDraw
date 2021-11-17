@@ -38,9 +38,9 @@
 
 %nonassoc <num> CMP
 %right '='
-%left '+' '-'
-%left '*' '/'
-%type <ast> expression postfix_expression primary_expression declaration statement statement_list initializer
+%left '+' '-' OR
+%left '*' '/' AND
+%type <ast> expression postfix_expression primary_expression declaration statement statement_list initializer bool_expression cmp_expression
 %type <array> expression_list
 
 %locations
@@ -88,7 +88,7 @@ expression_list
     ;
 
 expression 
-    : expression CMP expression { $$ = new Ast($2,  std::shared_ptr<Ast>($1), std::shared_ptr<Ast>($3)); }
+    : bool_expression { $$ = $1; }
     | expression '+' expression { $$ = new Ast('+', std::shared_ptr<Ast>($1), std::shared_ptr<Ast>($3)); }
     | expression '-' expression { $$ = new Ast('-', std::shared_ptr<Ast>($1), std::shared_ptr<Ast>($3)); }
     | expression '*' expression { $$ = new Ast('*', std::shared_ptr<Ast>($1), std::shared_ptr<Ast>($3)); }
@@ -96,6 +96,17 @@ expression
     | '(' expression ')' { $$ = $2; }
     | postfix_expression { $$ = $1; }
     | postfix_expression '=' expression { $$ = new SymAsgn(std::shared_ptr<Ast>($1), std::shared_ptr<Ast>($3)); }
+    ;
+
+bool_expression
+    : cmp_expression { $$ = $1; }
+    | '(' cmp_expression ')' { $$ = $2; }
+    | bool_expression AND bool_expression { $$ = new Ast('a', std::shared_ptr<Ast>($1), std::shared_ptr<Ast>($3)); }
+    | bool_expression OR  bool_expression { $$ = new Ast('o', std::shared_ptr<Ast>($1), std::shared_ptr<Ast>($3)); }
+    ;
+
+cmp_expression
+    : expression CMP expression { $$ = new Ast($2,  std::shared_ptr<Ast>($1), std::shared_ptr<Ast>($3)); }
     ;
 
 postfix_expression

@@ -336,6 +336,28 @@ Element Element::operator<=(const Element & a) {
     return result;
 }
 
+Element Element::operator&&(const Element &a) {
+    Element result;
+    result.type_ = BOOL;
+    if (type_ != BOOL || a.type_ != BOOL) {
+        std::cerr << "can only and two booleans" << std::endl;
+        exit(1);
+    }
+    result.n_ = n_ & a.n_;
+    return result;
+}
+
+Element Element::operator||(const Element &a) {
+    Element result;
+    result.type_ = BOOL;
+    if (type_ != BOOL || a.type_ != BOOL) {
+        std::cerr << "can only and two booleans" << std::endl;
+        exit(1);
+    }
+    result.n_ = n_ | a.n_;
+    return result;
+}
+
 Element &Element::operator=(const Element &a) {
     type_ = a.type_;
     switch (type_) {
@@ -383,6 +405,9 @@ Element Ast::eval() {
 
         case 'e': return EMPTY;
         case 'l': if (left_) left_->eval(); if (right_) right_->eval(); return EMPTY;
+
+        case 'a': return left_->eval() && right_->eval();
+        case 'o': return left_->eval() || right_->eval();
         default : return {};
     }
 }
