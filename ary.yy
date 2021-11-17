@@ -29,8 +29,7 @@
     Ast * ast;
     int num;
     std::string * symbol;
-    Symbol * s;
-    NumList * array;
+    std::vector<AstPtr> * array;
 };
 
 %token <num> NUMBER
@@ -41,9 +40,8 @@
 %right '='
 %left '+' '-'
 %left '*' '/'
-%type <ast> expression postfix_expression primary_expression declaration statement statement_list
+%type <ast> expression postfix_expression primary_expression declaration statement statement_list initializer
 %type <array> expression_list
-%type <s> initializer
 
 %locations
 
@@ -66,43 +64,24 @@ statement
 
 declaration
     : IDENTIFIER ASSIGN initializer {
-        $$ = new SymDecl(*$1, std::shared_ptr<Symbol>($3));
+        $$ = new SymDecl(*$1, std::shared_ptr<Ast>($3));
         delete $1;
     }
     ;
 
 initializer
-    : expression { 
-        Element res = $1->eval();
-        if (res.type_ == Element::NUM) $$ = new NumSymbol(res.n_);
-        else {
-            auto array = std::make_shared<Array>();
-            (*array)(res.a_);
-            $$ = new ArraySymbol(array);
-        }
-
-        delete $1;
-    }
-    | INT '[' expression_list ']' { $$ = new ArraySymbol(std::make_shared<Array>(*$3)); delete $3; }
+    : expression { $$ = $1; }
+    | INT '[' expression_list ']' { $$ = new NumArray(Array(ConvertList(*$3))); delete $3; }
     ;
 
 expression_list
     : expression {
-        Element res = $1->eval();
-        auto list = new NumList();
-        if (res.type_ == Element::NUM) list->push_back(res.n_);
-        else list->push_back(int(res.a_));
-        $$ = list;
-        
-        delete $1;
+        $$ = new std::vector<AstPtr>();
+        $$->push_back(std::shared_ptr<Ast>($1));
     }
     | expression ',' expression_list { 
-        Element res = $1->eval();
-        if (res.type_ == Element::NUM) $3->push_back(res.n_);
-        else $3->push_back(int(res.a_));
+        $3->push_back(std::shared_ptr<Ast>($1));
         $$ = $3;
-
-        delete $1;
     }
     ;
 
@@ -119,7 +98,7 @@ expression
 
 postfix_expression
     : primary_expression { $$ = $1; }
-    | postfix_expression '[' expression_list ']' { $$ = new ArrayRef(std::shared_ptr<Ast>($1), *$3); }
+    | postfix_expression '[' expression_list ']' { $$ = new ArrayRef(std::shared_ptr<Ast>($1), *$3); delete $3; }
     ;
 
 primary_expression

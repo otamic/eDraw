@@ -8,6 +8,14 @@
 #include <stack>
 #include <memory>
 
+NumList ConvertList(const std::vector<AstPtr>& from) {
+    NumList res;
+    for (const auto& ast: from) {
+        res.push_back(int(ast->eval()));
+    }
+    return res;
+}
+
 const Element EMPTY = { Element::NUM, 0 };
 
 bool CheckVec(const NumList & from, const NumList & index) {
@@ -427,7 +435,7 @@ Element ArrayRef::eval() {
     else {
         auto arraySymbol = std::dynamic_pointer_cast<ArraySymbol>(symRef->symbol_);
         result.type_ = Element::ARRAY;
-        result.a_(*arraySymbol->data_->at(index_));
+        result.a_(*arraySymbol->data_->at(ConvertList(index_)));
     }
     return result;
 }
@@ -485,29 +493,21 @@ Element SymDecl::eval() {
         std::cerr << "this variable has been used: " << name_ << std::endl;
         exit(1);
     }
-    Symbol::add(name_, symbol_);
+    Element result = value_->eval();
 
-    Element result;
-    switch(symbol_->type_) {
-        case 'n': {
-            auto numSymbol = std::static_pointer_cast<NumSymbol>(symbol_);
-            result.type_ = Element::NUM;
-            result.n_ = numSymbol->data_;
+    switch (result.type_) {
+        case Element::NUM: symbol = std::make_shared<NumSymbol>(result.n_); break;
+        case Element::ARRAY: {
+            ArrayPtr array = std::make_shared<Array>();
+            (*array)(result.a_);
+            symbol = std::make_shared<ArraySymbol>(array);
             break;
         }
-        case 'a': {
-            auto arraySymbol = std::static_pointer_cast<ArraySymbol>(symbol_);
-            result.type_ = Element::ARRAY;
-            result.a_(*arraySymbol->data_);
-            break;
-        }
-        case 'b': {
-            auto boolSymbol = std::static_pointer_cast<BoolSymbol>(symbol_);
-            result.type_ = Element::BOOL;
-            result.n_ = boolSymbol->data_;
-            break;
-        }
+        case Element::BOOL: symbol = std::make_shared<BoolSymbol>(result.n_); break;
     }
+
+    Symbol::add(name_, symbol);
+
     return result;
 }
 

@@ -149,9 +149,9 @@ public:
 
 class ArrayRef : public Ast {
 public:
-    NumList index_;
+    std::vector<AstPtr> index_;
 
-    ArrayRef(AstPtr symbol, NumList index):Ast('M', std::move(symbol), nullptr), index_(std::move(index)) {}
+    ArrayRef(AstPtr symbol, std::vector<AstPtr> index):Ast('M', std::move(symbol), nullptr), index_(std::move(index)) {}
     Element eval();
 };
 
@@ -163,10 +163,10 @@ public:
 
 class SymDecl : public Ast {
 public:
-    SymDecl(std::string name, SymbolPtr symbol):Ast('D', nullptr, nullptr), name_(std::move(name)), symbol_(std::move(symbol)) {}
+    SymDecl(std::string name, AstPtr value):Ast('D', nullptr, nullptr), name_(std::move(name)), value_(std::move(value)) {}
     Element eval();
     std::string name_;
-    SymbolPtr symbol_;
+    AstPtr value_;
 };
 
 class PrintCal : public Ast {
@@ -174,5 +174,7 @@ public:
     PrintCal(AstPtr exp):Ast('C', std::move(exp), nullptr) {}
     Element eval();
 };
+
+NumList ConvertList(const std::vector<AstPtr>& from);
 
 #endif //ARRAY_M_TYPE_H
