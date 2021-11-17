@@ -41,39 +41,32 @@
 %right '='
 %left '+' '-'
 %left '*' '/'
-%type <ast> expression postfix_expression primary_expression
+%type <ast> expression postfix_expression primary_expression declaration statement statement_list
 %type <array> expression_list
 %type <s> initializer
 
 %locations
 
 %%
+start
+    : statement_list { $1->eval(); delete $1; }
+    ;
+
 statement_list
-    : statement 
-    | statement_list statement 
+    : statement { $$ = $1; }
+    | statement_list statement { $$ = new Ast('l', std::shared_ptr<Ast>($1), std::shared_ptr<Ast>($2)); }
     ;
 
 statement
-    : EOL 
-    | declaration EOL
-    | expression EOL { $1->eval(); delete $1; }
-    | PRINT expression EOL {
-        Element res = $2->eval();
-        std::cout << res << std::endl;
-
-        delete $2;
-    }
+    : EOL { $$ = new Ast('e', nullptr, nullptr); }
+    | declaration EOL { $$ = $1; }
+    | expression EOL { $$ = $1; }
+    | PRINT expression EOL { $$ = new PrintCal(std::shared_ptr<Ast>($2)); }
     ;
 
 declaration
     : IDENTIFIER ASSIGN initializer {
-        auto symbol = Symbol::lookup(*$1);
-        if (symbol != nullptr) {
-            std::cerr << "this variable has been used" << std::endl;
-            exit(1);
-        }
-        Symbol::add(*$1, std::shared_ptr<Symbol>($3));
-
+        $$ = new SymDecl(*$1, std::shared_ptr<Symbol>($3));
         delete $1;
     }
     ;
@@ -132,13 +125,7 @@ postfix_expression
 primary_expression
     : NUMBER { $$ = new Num($1); }
     | IDENTIFIER { 
-        auto symbol = Symbol::lookup(*$1);
-        if (symbol == nullptr) {
-            std::cerr << "can't refer to a uninitialized variable" << std::endl;
-            exit(1);
-        }
-        $$ = new SymRef(symbol); 
-
+        $$ = new SymRef(*$1); 
         delete $1;
     }
     ;

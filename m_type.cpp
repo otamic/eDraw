@@ -8,6 +8,8 @@
 #include <stack>
 #include <memory>
 
+const Element EMPTY = { Element::NUM, 0 };
+
 bool CheckVec(const NumList & from, const NumList & index) {
     if (index.size() > from.size()) return false;
 
@@ -360,6 +362,9 @@ Element Ast::eval() {
         case '4': return left_->eval() == right_->eval();
         case '5': return left_->eval() >= right_->eval();
         case '6': return left_->eval() <= right_->eval();
+
+        case 'e': return EMPTY;
+        case 'l': if (left_) left_->eval(); if (right_) right_->eval(); return EMPTY;
         default : return {};
     }
 }
@@ -380,6 +385,11 @@ Element NumArray::eval() {
 
 Element SymRef::eval() {
     Element result;
+    symbol_ = Symbol::lookup(name_);
+    if (symbol_ == nullptr) {
+        std::cerr << "can't refer to a uninitialized variable" << std::endl;
+        exit(1);
+    }
     switch(symbol_->type_) {
         case 'n': {
             auto numSymbol = std::dynamic_pointer_cast<NumSymbol>(symbol_);
@@ -409,6 +419,7 @@ Element ArrayRef::eval() {
         exit(1);
     }
     auto symRef = std::dynamic_pointer_cast<SymRef>(left_);
+    symRef->eval();
     if (symRef->symbol_->type_ == 'n' || symRef->symbol_->type_ == 'b') {
         std::cout << "only array can be referred" << std::endl;
         exit(1);
@@ -425,6 +436,7 @@ Element SymAsgn::eval() {
     Element result, value = right_->eval();
     if (left_->type_ == 'N') {
         auto symRef = std::dynamic_pointer_cast<SymRef>(left_);
+        symRef->eval();
         if (symRef->symbol_->type_ == 'n') {
             auto numSymbol = std::dynamic_pointer_cast<NumSymbol>(symRef->symbol_);
             if (value.type_ == Element::NUM) numSymbol->data_ = value.n_;
@@ -465,4 +477,42 @@ Element SymAsgn::eval() {
     }
 
     return result;
+}
+
+Element SymDecl::eval() {
+    auto symbol = Symbol::lookup(name_);
+    if (symbol != nullptr) {
+        std::cerr << "this variable has been used: " << name_ << std::endl;
+        exit(1);
+    }
+    Symbol::add(name_, symbol_);
+
+    Element result;
+    switch(symbol_->type_) {
+        case 'n': {
+            auto numSymbol = std::static_pointer_cast<NumSymbol>(symbol_);
+            result.type_ = Element::NUM;
+            result.n_ = numSymbol->data_;
+            break;
+        }
+        case 'a': {
+            auto arraySymbol = std::static_pointer_cast<ArraySymbol>(symbol_);
+            result.type_ = Element::ARRAY;
+            result.a_(*arraySymbol->data_);
+            break;
+        }
+        case 'b': {
+            auto boolSymbol = std::static_pointer_cast<BoolSymbol>(symbol_);
+            result.type_ = Element::BOOL;
+            result.n_ = boolSymbol->data_;
+            break;
+        }
+    }
+    return result;
+}
+
+Element PrintCal::eval() {
+    Element res = left_->eval();
+    std::cout << res << std::endl;
+    return res;
 }

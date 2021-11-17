@@ -140,9 +140,10 @@ public:
 
 class SymRef : public Ast {
 public:
+    std::string name_;
     SymbolPtr symbol_;
 
-    explicit SymRef(SymbolPtr symbol):Ast('N', nullptr, nullptr), symbol_(std::move(symbol)) {}
+    explicit SymRef(std::string name):Ast('N', nullptr, nullptr), name_(std::move(name)) {}
     Element eval();
 };
 
@@ -157,6 +158,20 @@ public:
 class SymAsgn : public Ast {
 public:
     SymAsgn(AstPtr ref, AstPtr value):Ast('=', std::move(ref), std::move(value)) {}
+    Element eval();
+};
+
+class SymDecl : public Ast {
+public:
+    SymDecl(std::string name, SymbolPtr symbol):Ast('D', nullptr, nullptr), name_(std::move(name)), symbol_(std::move(symbol)) {}
+    Element eval();
+    std::string name_;
+    SymbolPtr symbol_;
+};
+
+class PrintCal : public Ast {
+public:
+    PrintCal(AstPtr exp):Ast('C', std::move(exp), nullptr) {}
     Element eval();
 };
 
