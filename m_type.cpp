@@ -182,15 +182,28 @@ std::ostream& operator<<(std::ostream& os, const Array& array) {
 /*
  * Symbol Table
  */
-std::map<std::string, SymbolPtr> Symbol::symbolTable_ = std::map<std::string, SymbolPtr>();
+std::vector<SymbolTable> SymbolManager::symbolTables_ = std::vector<SymbolTable>();
 
-std::shared_ptr<Symbol> Symbol::lookup(const std::string & name) {
-    if (symbolTable_.find(name) == symbolTable_.end()) return nullptr;
-    return symbolTable_[name];
+ElePtr SymbolManager::lookup(const std::string &name) {
+    ElePtr result = nullptr;
+    for (auto it = symbolTables_.rbegin(); it != symbolTables_.rend(); ++it)
+        if ((*it).find(name) != (*it).end()) {
+            result = (*it)[name];
+            break;
+        }
+    return result;
 }
 
-void Symbol::add(const std::string & name, const std::shared_ptr<Symbol> & symbol) {
-    symbolTable_[name] = symbol;
+void SymbolManager::addLayer() {
+    symbolTables_.emplace_back();
+}
+
+void SymbolManager::add(const std::string &name, const ElePtr &symbol) {
+    symbolTables_.back()[name] = symbol;
+}
+
+void SymbolManager::popLayer() {
+    symbolTables_.pop_back();
 }
 
 /*
@@ -427,32 +440,12 @@ Element NumArray::eval() {
 }
 
 Element SymRef::eval() {
-    Element result;
-    symbol_ = Symbol::lookup(name_);
+    symbol_ = SymbolManager::lookup(name_);
     if (symbol_ == nullptr) {
         std::cerr << "can't refer to a uninitialized variable" << std::endl;
         exit(1);
     }
-    switch(symbol_->type_) {
-        case 'n': {
-            auto numSymbol = std::dynamic_pointer_cast<NumSymbol>(symbol_);
-            result.type_ = Element::NUM;
-            result.n_ = numSymbol->data_;
-            break;
-        }
-        case 'a': {
-            auto arraySymbol = std::dynamic_pointer_cast<ArraySymbol>(symbol_);
-            result.type_ = Element::ARRAY;
-            result.a_(*arraySymbol->data_);
-            break;
-        }
-        case 'b': {
-            auto boolSymbol = std::dynamic_pointer_cast<BoolSymbol>(symbol_);
-            result.type_ = Element::BOOL;
-            result.n_ = boolSymbol->data_;
-        }
-    }
-    return result;
+    return *symbol_;
 }
 
 Element ArrayRef::eval() {
@@ -462,15 +455,13 @@ Element ArrayRef::eval() {
         exit(1);
     }
     auto symRef = std::dynamic_pointer_cast<SymRef>(left_);
-    symRef->eval();
-    if (symRef->symbol_->type_ == 'n' || symRef->symbol_->type_ == 'b') {
+    result = symRef->eval();
+    if (result.type_ != Element::ARRAY) {
         std::cout << "only array can be referred" << std::endl;
         exit(1);
     }
     else {
-        auto arraySymbol = std::dynamic_pointer_cast<ArraySymbol>(symRef->symbol_);
-        result.type_ = Element::ARRAY;
-        result.a_(*arraySymbol->data_->at(ConvertList(index_)));
+        result.a_(*result.a_.at(ConvertList(index_)));
     }
     return result;
 }
@@ -479,71 +470,60 @@ Element SymAsgn::eval() {
     Element result, value = right_->eval();
     if (left_->type_ == 'N') {
         auto symRef = std::dynamic_pointer_cast<SymRef>(left_);
-        symRef->eval();
-        if (symRef->symbol_->type_ == 'n') {
-            auto numSymbol = std::dynamic_pointer_cast<NumSymbol>(symRef->symbol_);
-            if (value.type_ == Element::NUM) numSymbol->data_ = value.n_;
-            else numSymbol->data_ = value.a_;
-            result.type_ = Element::NUM;
-            result.n_ = numSymbol->data_;
-        }
-        else if (symRef->symbol_->type_ == 'a'){
-            auto arraySymbol = std::dynamic_pointer_cast<ArraySymbol>(symRef->symbol_);
-            if (value.type_ == Element::ARRAY) *arraySymbol->data_ = value.a_;
-            else *arraySymbol->data_ = value.n_;
-            result.type_ = Element::ARRAY;
-            result.a_(*arraySymbol->data_);
-        }
-        else if (symRef->symbol_->type_ == 'b'){
-            auto boolSymbol = std::dynamic_pointer_cast<BoolSymbol>(symRef->symbol_);
-            if (value.type_ == Element::BOOL) boolSymbol->data_ = value.n_;
-            else {
-                std::cerr << "can't assign a bool with other type" << std::endl;
-                exit(1);
+        result = symRef->eval();
+        switch (symRef->symbol_->type_) {
+            case Element::NUM: {
+                if (value.type_ == Element::NUM) symRef->symbol_->n_ = value.n_;
+                else if (value.type_ == Element::ARRAY) symRef->symbol_->n_ = value.a_;
+                else if (value.type_ == Element::BOOL) {
+                    std::cerr << "can't assign a boolean to a num" << std::endl;
+                    exit(EXIT_FAILURE);
+                }
+                break;
             }
-            result.type_ = Element::BOOL;
-            result.n_ = boolSymbol->data_;
+            case Element::ARRAY: {
+                if (value.type_ == Element::NUM) symRef->symbol_->a_ = value.n_;
+                else if (value.type_ == Element::ARRAY) symRef->symbol_->a_ = value.a_;
+                else if (value.type_ == Element::BOOL) {
+                    std::cerr << "can't assign a boolean to an array" << std::endl;
+                    exit(EXIT_FAILURE);
+                }
+                break;
+            }
+            case Element::BOOL: {
+                if (value.type_ == Element::BOOL) symRef->symbol_->n_ = value.n_;
+                else {
+                    std::cerr << "can't assign a bool with other type" << std::endl;
+                    exit(1);
+                }
+                break;
+            }
         }
     }
     else if (left_->type_ == 'M') {
         auto arrayRef = std::dynamic_pointer_cast<ArrayRef>(left_);
-        auto temp = arrayRef->eval();
-        // temp.a_ = value.type_ == Element::ARRAY ? value.a_ : value.n_;
-        if (value.type_ == Element::ARRAY) temp.a_ = value.a_;
-        else if (value.type_ == Element::NUM) temp.a_ = value.n_;
+        result = arrayRef->eval();
+        if (value.type_ == Element::ARRAY) result.a_ = value.a_;
+        else if (value.type_ == Element::NUM) result.a_ = value.n_;
         else {
             std::cerr << "can't assign a bool with other type" << std::endl;
             exit(1);
         }
-        result.type_ = Element::ARRAY;
-        result.a_(temp.a_);
     }
 
     return result;
 }
 
 Element SymDecl::eval() {
-    auto symbol = Symbol::lookup(name_);
+    auto symbol = SymbolManager::lookup(name_);
     if (symbol != nullptr) {
         std::cerr << "this variable has been used: " << name_ << std::endl;
         exit(1);
     }
-    Element result = value_->eval();
-
-    switch (result.type_) {
-        case Element::NUM: symbol = std::make_shared<NumSymbol>(result.n_); break;
-        case Element::ARRAY: {
-            ArrayPtr array = std::make_shared<Array>();
-            (*array)(result.a_);
-            symbol = std::make_shared<ArraySymbol>(array);
-            break;
-        }
-        case Element::BOOL: symbol = std::make_shared<BoolSymbol>(result.n_); break;
-    }
-
-    Symbol::add(name_, symbol);
-
-    return result;
+    ElePtr result = std::make_shared<Element>();
+    *result = value_->eval();
+    SymbolManager::add(name_, result);
+    return *result;
 }
 
 Element PrintCal::eval() {
@@ -573,5 +553,12 @@ Element WhileSta::eval() {
         right_->eval();
         exp = left_->eval();
     }
+    return EMPTY;
+}
+
+Element CpdSta::eval() {
+    SymbolManager::addLayer();
+    left_->eval();
+    SymbolManager::popLayer();
     return EMPTY;
 }

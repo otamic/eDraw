@@ -40,7 +40,7 @@
 %right '='
 %left '+' '-' OR
 %left '*' '/' AND
-%type <ast> expression postfix_expression primary_expression declaration statement statement_list initializer bool_expression cmp_expression
+%type <ast> expression postfix_expression primary_expression declaration statement statement_list initializer bool_expression cmp_expression compound_statement
 %type <array> expression_list
 
 %locations
@@ -60,8 +60,8 @@ statement
     | declaration EOL { $$ = $1; }
     | expression EOL { $$ = $1; }
     | PRINT expression EOL { $$ = new PrintCal(std::shared_ptr<Ast>($2)); }
-    | IF expression '{' statement_list '}' { $$ = new IfSta(std::shared_ptr<Ast>($2), std::shared_ptr<Ast>($4)); }
-    | WHILE expression '{' statement_list '}' { $$ = new WhileSta(std::shared_ptr<Ast>($2), std::shared_ptr<Ast>($4)); }
+    | IF expression compound_statement { $$ = new IfSta(std::shared_ptr<Ast>($2), std::shared_ptr<Ast>($3)); }
+    | WHILE expression compound_statement { $$ = new WhileSta(std::shared_ptr<Ast>($2), std::shared_ptr<Ast>($3)); }
     ;
 
 declaration
@@ -74,6 +74,10 @@ declaration
 initializer
     : expression { $$ = $1; }
     | INT '[' expression_list ']' { $$ = new NumArray(Array(ConvertList(*$3))); delete $3; }
+    ;
+
+compound_statement
+    : '{' statement_list '}' { $$ = new CpdSta(std::shared_ptr<Ast>($2)); }
     ;
 
 expression_list
@@ -100,7 +104,7 @@ expression
 
 bool_expression
     : cmp_expression { $$ = $1; }
-    | '(' cmp_expression ')' { $$ = $2; }
+    | '(' bool_expression ')' { $$ = $2; }
     | bool_expression AND bool_expression { $$ = new Ast('a', std::shared_ptr<Ast>($1), std::shared_ptr<Ast>($3)); }
     | bool_expression OR  bool_expression { $$ = new Ast('o', std::shared_ptr<Ast>($1), std::shared_ptr<Ast>($3)); }
     ;

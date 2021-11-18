@@ -47,37 +47,18 @@ private:
 /*
  * Symbol Table
  */
-class Symbol;
-typedef std::shared_ptr<Symbol> SymbolPtr;
+class Element;
+typedef std::shared_ptr<Element> ElePtr;
+typedef std::map<std::string, ElePtr> SymbolTable;
 
-class Symbol {
+class SymbolManager {
 public:
-    Symbol(int type): type_(type) {}
-    virtual ~Symbol() = default;
-    int type_;
-
-    static SymbolPtr lookup(const std::string & name);
-    static void add(const std::string & name, const SymbolPtr & symbol);
+    static ElePtr lookup(const std::string & name);
+    static void addLayer();
+    static void add(const std::string & name, const ElePtr & symbol);
+    static void popLayer();
 private:
-    static std::map<std::string, SymbolPtr> symbolTable_;
-};
-
-class NumSymbol: public Symbol {
-public:
-    NumSymbol(int num): Symbol('n'), data_(num) {}
-    int data_;
-};
-
-class ArraySymbol: public Symbol {
-public:
-    ArraySymbol(ArrayPtr array): Symbol('a'), data_(std::move(array)){}
-    ArrayPtr data_;
-};
-
-class BoolSymbol: public Symbol {
-public:
-    BoolSymbol(int num): Symbol('b'), data_(num) {}
-    int data_;
+    static std::vector<SymbolTable> symbolTables_;
 };
 
 /*
@@ -145,7 +126,7 @@ public:
 class SymRef : public Ast {
 public:
     std::string name_;
-    SymbolPtr symbol_;
+    ElePtr symbol_;
 
     explicit SymRef(std::string name):Ast('N', nullptr, nullptr), name_(std::move(name)) {}
     Element eval();
@@ -189,6 +170,12 @@ public:
 class WhileSta : public Ast {
 public:
     WhileSta(AstPtr expression, AstPtr statements):Ast('W', std::move(expression), std::move(statements)) {}
+    Element eval();
+};
+
+class CpdSta : public Ast {
+public:
+    CpdSta(AstPtr statements):Ast('P', std::move(statements), nullptr) {}
     Element eval();
 };
 
