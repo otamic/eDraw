@@ -562,3 +562,10 @@ Element CpdSta::eval() {
     SymbolManager::popLayer();
     return EMPTY;
 }
+
+Element BoolCons::eval() {
+    if (type_ == 't')
+        return { Element::BOOL, 1 };
+    else
+        return { Element::BOOL, 0 };
+}

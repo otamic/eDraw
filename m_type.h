@@ -179,6 +179,12 @@ public:
     Element eval();
 };
 
+class BoolCons : public Ast {
+public:
+    BoolCons(char type):Ast(type, nullptr, nullptr) {}
+    Element eval();
+};
+
 NumList ConvertList(const std::vector<AstPtr>& from);
 
 #endif //ARRAY_M_TYPE_H

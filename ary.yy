@@ -34,7 +34,7 @@
 
 %token <num> NUMBER
 %token <symbol> IDENTIFIER
-%token EOL INT ASSIGN PRINT IF WHILE
+%token EOL INT ASSIGN PRINT IF WHILE TRUE FALSE
 
 %nonassoc <num> CMP
 %right '='
@@ -111,6 +111,8 @@ bool_expression
 
 cmp_expression
     : expression CMP expression { $$ = new Ast($2,  std::shared_ptr<Ast>($1), std::shared_ptr<Ast>($3)); }
+    | TRUE { $$ = new BoolCons('t'); }
+    | FALSE { $$ = new BoolCons('f'); }
     ;
 
 postfix_expression
