@@ -51,21 +51,35 @@ class Element;
 typedef std::shared_ptr<Element> ElePtr;
 typedef std::map<std::string, ElePtr> SymbolTable;
 
+class Ast;
+typedef std::shared_ptr<Ast> AstPtr;
+
 class SymbolManager {
 public:
     static ElePtr lookup(const std::string & name);
     static void addLayer();
     static void add(const std::string & name, const ElePtr & symbol);
     static void popLayer();
+
+    static AstPtr lookupF(const std::string & name);
+    static void addLayerF();
+    static void addF(const std::string & name, const AstPtr & func);
+    static void popLayerF();
+
+    enum Status { WHILE, FUNC };
+    static void addStatus(Status status) { status_.push_back(status); }
+    static Status topStatus() { return status_.back(); }
+    static void popStatus() { status_.pop_back(); }
 private:
     static std::vector<SymbolTable> symbolTables_;
+    static std::vector<std::map<std::string, AstPtr>> funcTables_;
+
+    static std::vector<Status> status_;
 };
 
 /*
  * Abstract Binary Tree
  */
-class Ast;
-typedef std::shared_ptr<Ast> AstPtr;
 
 class Element {
 public:
@@ -89,7 +103,7 @@ public:
 
     friend std::ostream& operator<<(std::ostream& os, const Element & element);
 
-    enum Type {NUM, ARRAY, BOOL} type_;
+    enum Type {NUM, ARRAY, BOOL, CONTINUE, BREAK} type_;
     struct {
         int n_;
         Array a_;
@@ -182,6 +196,16 @@ public:
 class BoolCons : public Ast {
 public:
     BoolCons(char type):Ast(type, nullptr, nullptr) {}
+    Element eval();
+};
+
+class FuncDecl : public Ast {
+public:
+    std::string name_;
+    std::vector<Ast> parameters_;
+    AstPtr contain_;
+
+    FuncDecl(const std::string& name, std::vector<Ast> params, AstPtr cont):Ast('F', std::move(cont), nullptr), parameters_(std::move(params)) {}
     Element eval();
 };
 

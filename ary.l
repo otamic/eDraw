@@ -58,6 +58,11 @@
 "true" { return token::TRUE; }
 "false" { return token::FALSE; }
 
+"func" { return token::FUNC; }
+
+"break" { return token::BREAK; }
+"continue" { return token::CONTINUE; }
+
 [a-zA-Z][a-zA-Z0-9]* { yylval->symbol = new std::string(yytext); return token::IDENTIFIER; }
 [0-9]+ { yylval->num = atoi(yytext); return token::NUMBER; }
 \n { loc->lines(1); return token::EOL; }

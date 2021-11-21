@@ -34,13 +34,14 @@
 
 %token <num> NUMBER
 %token <symbol> IDENTIFIER
-%token EOL INT ASSIGN PRINT IF WHILE TRUE FALSE
+%token EOL INT ASSIGN PRINT IF WHILE TRUE FALSE FUNC BREAK CONTINUE
 
 %nonassoc <num> CMP
 %right '='
 %left '+' '-' OR
 %left '*' '/' AND
 %type <ast> expression postfix_expression primary_expression declaration statement statement_list initializer bool_expression cmp_expression compound_statement
+%type <ast> jump_statements
 %type <array> expression_list
 
 %locations
@@ -62,13 +63,15 @@ statement
     | PRINT expression EOL { $$ = new PrintCal(std::shared_ptr<Ast>($2)); }
     | IF expression compound_statement { $$ = new IfSta(std::shared_ptr<Ast>($2), std::shared_ptr<Ast>($3)); }
     | WHILE expression compound_statement { $$ = new WhileSta(std::shared_ptr<Ast>($2), std::shared_ptr<Ast>($3)); }
+    | jump_statements EOL { $$ = $1; }
     ;
 
 declaration
     : IDENTIFIER ASSIGN initializer {
         $$ = new SymDecl(*$1, std::shared_ptr<Ast>($3));
         delete $1;
-    }
+    } 
+    | FUNC IDENTIFIER '(' expression_list ')' compound_statement { }
     ;
 
 initializer
@@ -79,6 +82,10 @@ initializer
 compound_statement
     : '{' statement_list '}' { $$ = new CpdSta(std::shared_ptr<Ast>($2)); }
     ;
+
+jump_statements
+    : BREAK { $$ = new Ast('b', nullptr, nullptr); }
+    | CONTINUE { $$ = new Ast('c', nullptr, nullptr); }
 
 expression_list
     : expression {

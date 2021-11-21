@@ -183,6 +183,8 @@ std::ostream& operator<<(std::ostream& os, const Array& array) {
  * Symbol Table
  */
 std::vector<SymbolTable> SymbolManager::symbolTables_ = std::vector<SymbolTable>();
+std::vector<std::map<std::string, AstPtr>> SymbolManager::funcTables_ = std::vector<std::map<std::string, AstPtr>>();
+std::vector<SymbolManager::Status> SymbolManager::status_ = std::vector<SymbolManager::Status>();
 
 ElePtr SymbolManager::lookup(const std::string &name) {
     ElePtr result = nullptr;
@@ -204,6 +206,28 @@ void SymbolManager::add(const std::string &name, const ElePtr &symbol) {
 
 void SymbolManager::popLayer() {
     symbolTables_.pop_back();
+}
+
+AstPtr SymbolManager::lookupF(const std::string &name) {
+    AstPtr result = nullptr;
+    for (auto it = funcTables_.rbegin(); it != funcTables_.rend(); ++it)
+        if ((*it).find(name) != (*it).end()) {
+            result = (*it)[name];
+            break;
+        }
+    return result;
+}
+
+void SymbolManager::addLayerF() {
+    funcTables_.emplace_back();
+}
+
+void SymbolManager::addF(const std::string &name, const AstPtr &func) {
+    funcTables_.back()[name] = func;
+}
+
+void SymbolManager::popLayerF() {
+    funcTables_.pop_back();
 }
 
 /*
@@ -417,10 +441,34 @@ Element Ast::eval() {
         case '6': return left_->eval() <= right_->eval();
 
         case 'e': return EMPTY;
-        case 'l': if (left_) left_->eval(); if (right_) right_->eval(); return EMPTY;
+        case 'l':
+            if (left_) {
+                Element result = left_->eval();
+                if (result.type_ == Element::CONTINUE || result.type_ == Element::BREAK)
+                    return result;
+            }
+            if (right_) {
+                Element result = right_->eval();
+                if (result.type_ == Element::CONTINUE || result.type_ == Element::BREAK)
+                    return result;
+            }
+            return EMPTY;
 
         case 'a': return left_->eval() && right_->eval();
         case 'o': return left_->eval() || right_->eval();
+
+        case 'b':
+            if (SymbolManager::topStatus() != SymbolManager::WHILE) {
+                std::cerr << "invalid break" << std::endl;
+                exit(EXIT_FAILURE);
+            }
+            return { Element::BREAK, 0 };
+        case 'c':
+            if (SymbolManager::topStatus() != SymbolManager::WHILE) {
+                std::cerr << "invalid continue" << std::endl;
+                exit(EXIT_FAILURE);
+            }
+            return { Element::CONTINUE, 0 };
         default : return {};
     }
 }
@@ -538,8 +586,11 @@ Element IfSta::eval() {
         std::cerr << "invalid if statement" << std::endl;
         exit(1);
     }
-    if (exp.n_ == 1)
-        right_->eval();
+    if (exp.n_ == 1) {
+        Element result = right_->eval();
+        if (result.type_ == Element::BREAK || result.type_ == Element::CONTINUE)
+            return result;
+    }
     return EMPTY;
 }
 
@@ -549,18 +600,21 @@ Element WhileSta::eval() {
         std::cerr << "invalid while statement" << std::endl;
         exit(1);
     }
+    SymbolManager::addStatus(SymbolManager::WHILE);
     while(exp.n_ == 1) {
-        right_->eval();
+        Element result = right_->eval();
+        if (result.type_ == Element::BREAK) break;
         exp = left_->eval();
     }
+    SymbolManager::popStatus();
     return EMPTY;
 }
 
 Element CpdSta::eval() {
     SymbolManager::addLayer();
-    left_->eval();
+    Element result = left_->eval();
     SymbolManager::popLayer();
-    return EMPTY;
+    return result;
 }
 
 Element BoolCons::eval() {
@@ -568,4 +622,21 @@ Element BoolCons::eval() {
         return { Element::BOOL, 1 };
     else
         return { Element::BOOL, 0 };
+}
+
+Element FuncDecl::eval() {
+    auto func = SymbolManager::lookupF(name_);
+    if (func != nullptr) {
+        std::cerr << "this functions has been defined" << std::endl;
+        exit(EXIT_FAILURE);
+    }
+    for (const auto & ast: parameters_)
+        if (ast.type_ != 'N') {
+            std::cerr << "invalid parameters in func: " << name_ << std::endl;
+            exit(EXIT_FAILURE);
+        }
+
+    func = std::make_shared<FuncDecl>(name_, parameters_, contain_);
+    SymbolManager::addF(name_, func);
+    return EMPTY;
 }
