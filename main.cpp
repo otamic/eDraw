@@ -8,6 +8,7 @@ int main(const int argc, const char **argv) {
         // for global variable
         SymbolManager::addLayer();
         SymbolManager::addStatus(SymbolManager::MAIN);
+        SymbolManager::addLayerF();
 
         MC::Driver driver;
         if (std::strncmp(argv[1], "-o", 2) == 0)

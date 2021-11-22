@@ -206,9 +206,17 @@ class FuncDecl : public Ast {
 public:
     std::string name_;
     std::vector<AstPtr> parameters_;
-    AstPtr contain_;
 
-    FuncDecl(const std::string& name, std::vector<AstPtr> params, AstPtr cont):Ast('F', std::move(cont), nullptr), parameters_(std::move(params)) {}
+    FuncDecl(std::string  name, std::vector<AstPtr> params, AstPtr cont):Ast('F', std::move(cont), nullptr), name_(std::move(name)), parameters_(std::move(params)) {}
+    Element eval();
+};
+
+class FuncCall : public Ast {
+public:
+    std::string name_;
+    std::vector<AstPtr> parameters_;
+
+    FuncCall(std::string  name, std::vector<AstPtr> params):Ast('C', nullptr, nullptr), name_(std::move(name)), parameters_(std::move(params)) {}
     Element eval();
 };
 

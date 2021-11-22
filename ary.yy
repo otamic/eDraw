@@ -111,6 +111,7 @@ expression
     | '(' expression ')' { $$ = $2; }
     | postfix_expression { $$ = $1; }
     | postfix_expression '=' expression { $$ = new SymAsgn(std::shared_ptr<Ast>($1), std::shared_ptr<Ast>($3)); }
+    | IDENTIFIER '(' expression_list ')' { $$ = new FuncCall(*$1, *$3); delete $1; delete $3; }
     ;
 
 bool_expression

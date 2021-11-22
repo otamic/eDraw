@@ -692,7 +692,38 @@ Element FuncDecl::eval() {
             exit(EXIT_FAILURE);
         }
 
-    func = std::make_shared<FuncDecl>(name_, parameters_, contain_);
+    func = std::make_shared<FuncDecl>(name_, parameters_, left_);
     SymbolManager::addF(name_, func);
+    return EMPTY;
+}
+
+Element FuncCall::eval() {
+    auto def = SymbolManager::lookupF(name_);
+    if (def == nullptr) {
+        std::cerr << "no such functions called: " << name_ << std::endl;
+        exit(EXIT_FAILURE);
+    }
+    auto func = std::static_pointer_cast<FuncDecl>(def);
+    if (func->parameters_.size() != parameters_.size()) {
+        std::cerr << "need " << func->parameters_.size() << " parameters, but providing " << parameters_.size() << std::endl;
+        exit(EXIT_FAILURE);
+    }
+    SymbolManager::addLayer();
+    SymbolManager::addStatus(SymbolManager::FUNC);
+    for (int i = 0; i < parameters_.size(); i++) {
+        auto symRef = std::static_pointer_cast<SymRef>(func->parameters_[i]);
+        auto temp = new SymDecl(symRef->name_, parameters_[i]);
+        temp->eval();
+        delete temp;
+    }
+    Element result = func->left_->eval();
+    if (SymbolManager::topStatus() == SymbolManager::RETURN) {
+        SymbolManager::popStatus();
+        SymbolManager::popStatus();
+        SymbolManager::popLayer();
+        return result;
+    }
+    SymbolManager::popStatus();
+    SymbolManager::popLayer();
     return EMPTY;
 }
