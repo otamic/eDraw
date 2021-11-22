@@ -38,7 +38,7 @@ public:
 
     operator int() const { return data_[bias_]; }
 
-private:
+// private:
     std::shared_ptr<int[]> data_;
     int bias_;
     NumList size_;
@@ -217,6 +217,14 @@ public:
     std::vector<AstPtr> parameters_;
 
     FuncCall(std::string  name, std::vector<AstPtr> params):Ast('C', nullptr, nullptr), name_(std::move(name)), parameters_(std::move(params)) {}
+    Element eval();
+};
+
+class ArrayPack : public Ast {
+public:
+    std::vector<AstPtr> contain_;
+
+    ArrayPack(std::vector<AstPtr> contain):Ast('P', nullptr, nullptr), contain_(std::move(contain)) {}
     Element eval();
 };
 

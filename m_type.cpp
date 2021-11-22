@@ -7,6 +7,7 @@
 #include <iostream>
 #include <stack>
 #include <memory>
+#include <cstdarg>
 
 NumList ConvertList(const std::vector<AstPtr>& from) {
     NumList res;
@@ -726,4 +727,45 @@ Element FuncCall::eval() {
     SymbolManager::popStatus();
     SymbolManager::popLayer();
     return EMPTY;
+}
+
+NumList EvalVec(int n, ...) {
+    NumList res;
+    int size;
+    va_list vl;
+    va_start(vl, n);
+    for (int i = 0; i < n; i++) {
+        size = va_arg(vl, int);
+        res.push_back(size);
+    }
+    return res;
+}
+
+Element ArrayPack::eval() {
+    Element result;
+    result.type_ = Element::ARRAY;
+    Element first = contain_.back()->eval();
+    if (first.type_ == Element::NUM || (first.type_ == Element::ARRAY && first.a_.size_ == EvalVec(1, 1)) ) {
+        Array array(EvalVec(1, int(contain_.size())));
+        *array.at(EvalVec(1, 0)) = int(first);
+        for (int i = 1; i < int(contain_.size()); i++)
+            *array.at(EvalVec(1, i)) = int(contain_[int(contain_.size()) - 1 - i]->eval());
+        result.a_(array);
+    }
+    else if (first.type_ == Element::ARRAY) {
+        NumList size = first.a_.size_;
+        size.push_back(int(contain_.size()));
+        Array array(size);
+        *array.at(EvalVec(1, 0)) = first.a_;
+        for (int i = 1; i < int(contain_.size()); i++) {
+            Element temp = contain_[int(contain_.size()) - 1 - i]->eval();
+            if (temp.type_ != Element::ARRAY && temp.a_.size_ != first.a_.size_) {
+                std::cerr << "bad array pack" << std::endl;
+                exit(EXIT_FAILURE);
+            }
+            *array.at(EvalVec(1, i)) = temp.a_;
+        }
+        result.a_(array);
+    }
+    return result;
 }

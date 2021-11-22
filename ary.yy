@@ -71,7 +71,11 @@ declaration
         $$ = new SymDecl(*$1, std::shared_ptr<Ast>($3));
         delete $1;
     } 
-    | FUNC IDENTIFIER '(' expression_list ')' compound_statement { $$ = new FuncDecl(*$2, *$4, std::shared_ptr<Ast>($6)); delete $2; delete $4; }
+    | FUNC IDENTIFIER '(' expression_list ')' compound_statement { 
+        $$ = new FuncDecl(*$2, *$4, std::shared_ptr<Ast>($6)); 
+        delete $2; 
+        delete $4; 
+    }
     ;
 
 initializer
@@ -112,6 +116,7 @@ expression
     | postfix_expression { $$ = $1; }
     | postfix_expression '=' expression { $$ = new SymAsgn(std::shared_ptr<Ast>($1), std::shared_ptr<Ast>($3)); }
     | IDENTIFIER '(' expression_list ')' { $$ = new FuncCall(*$1, *$3); delete $1; delete $3; }
+    | '[' expression_list ']' { $$ = new ArrayPack(*$2); delete $2; }
     ;
 
 bool_expression
