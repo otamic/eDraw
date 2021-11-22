@@ -7,6 +7,7 @@ int main(const int argc, const char **argv) {
     if (argc == 2) {
         // for global variable
         SymbolManager::addLayer();
+        SymbolManager::addStatus(SymbolManager::MAIN);
 
         MC::Driver driver;
         if (std::strncmp(argv[1], "-o", 2) == 0)

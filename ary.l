@@ -63,6 +63,7 @@
 
 "break" { return token::BREAK; }
 "continue" { return token::CONTINUE; }
+"return" { return token::RETURN; }
 
 [a-zA-Z][a-zA-Z0-9]* { yylval->symbol = new std::string(yytext); return token::IDENTIFIER; }
 [0-9]+ { yylval->num = atoi(yytext); return token::NUMBER; }

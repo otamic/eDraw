@@ -34,7 +34,7 @@
 
 %token <num> NUMBER
 %token <symbol> IDENTIFIER
-%token EOL INT ASSIGN PRINT IF WHILE TRUE FALSE FUNC BREAK CONTINUE
+%token EOL INT ASSIGN PRINT IF WHILE TRUE FALSE FUNC BREAK CONTINUE RETURN
 
 %nonassoc <num> CMP
 %right '='
@@ -71,7 +71,7 @@ declaration
         $$ = new SymDecl(*$1, std::shared_ptr<Ast>($3));
         delete $1;
     } 
-    | FUNC IDENTIFIER '(' expression_list ')' compound_statement { }
+    | FUNC IDENTIFIER '(' expression_list ')' compound_statement { $$ = new FuncDecl(*$2, *$4, std::shared_ptr<Ast>($6)); delete $2; delete $4; }
     ;
 
 initializer
@@ -86,6 +86,9 @@ compound_statement
 jump_statements
     : BREAK { $$ = new Ast('b', nullptr, nullptr); }
     | CONTINUE { $$ = new Ast('c', nullptr, nullptr); }
+    | RETURN { $$ = new Ast('r', nullptr, nullptr); }
+    | RETURN expression { $$ = new Ast('r', std::shared_ptr<Ast>($2), nullptr); }
+    ;
 
 expression_list
     : expression {

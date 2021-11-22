@@ -230,6 +230,23 @@ void SymbolManager::popLayerF() {
     funcTables_.pop_back();
 }
 
+bool SymbolManager::checkFunc() {
+    for (auto it = status_.rbegin(); it != status_.rend(); ++it)
+        if (*it == FUNC)
+            return true;
+    return false;
+}
+
+void SymbolManager::popFunc() {
+    if (!checkFunc()) {
+        std::cerr << "can't return here" << std::endl;
+        exit(EXIT_FAILURE);
+    }
+    while(status_.back() != FUNC)
+        status_.pop_back();
+    status_.push_back(RETURN);
+}
+
 /*
  * Abstract Binary Tree
  */
@@ -456,12 +473,16 @@ Element Ast::eval() {
         case 'l':
             if (left_) {
                 Element result = left_->eval();
-                if (result.type_ == Element::CONTINUE || result.type_ == Element::BREAK)
+                if (SymbolManager::topStatus() == SymbolManager::CONTINUE ||
+                    SymbolManager::topStatus() == SymbolManager::BREAK ||
+                    SymbolManager::topStatus() == SymbolManager::RETURN)
                     return result;
             }
             if (right_) {
                 Element result = right_->eval();
-                if (result.type_ == Element::CONTINUE || result.type_ == Element::BREAK)
+                if (SymbolManager::topStatus() == SymbolManager::CONTINUE ||
+                    SymbolManager::topStatus() == SymbolManager::BREAK ||
+                    SymbolManager::topStatus() == SymbolManager::RETURN)
                     return result;
             }
             return EMPTY;
@@ -474,13 +495,25 @@ Element Ast::eval() {
                 std::cerr << "invalid break" << std::endl;
                 exit(EXIT_FAILURE);
             }
-            return { Element::BREAK, 0 };
+            SymbolManager::addStatus(SymbolManager::BREAK);
+            return EMPTY;
         case 'c':
             if (SymbolManager::topStatus() != SymbolManager::WHILE) {
                 std::cerr << "invalid continue" << std::endl;
                 exit(EXIT_FAILURE);
             }
-            return { Element::CONTINUE, 0 };
+            SymbolManager::addStatus(SymbolManager::CONTINUE);
+            return EMPTY;
+        case 'r': {
+            if (!SymbolManager::checkFunc()) {
+                std::cerr << "can't return here" << std::endl;
+                exit(EXIT_FAILURE);
+            }
+            SymbolManager::addStatus(SymbolManager::RETURN);
+            if (left_ != nullptr)
+                return left_->eval();
+            return EMPTY;
+        }
         default : return {};
     }
 }
@@ -600,8 +633,10 @@ Element IfSta::eval() {
     }
     if (exp.n_ == 1) {
         Element result = right_->eval();
-        if (result.type_ == Element::BREAK || result.type_ == Element::CONTINUE)
+        if (SymbolManager::topStatus() == SymbolManager::RETURN) {
+            SymbolManager::popFunc();
             return result;
+        }
     }
     return EMPTY;
 }
@@ -615,7 +650,16 @@ Element WhileSta::eval() {
     SymbolManager::addStatus(SymbolManager::WHILE);
     while(exp.n_ == 1) {
         Element result = right_->eval();
-        if (result.type_ == Element::BREAK) break;
+        if (SymbolManager::topStatus() == SymbolManager::CONTINUE)
+            SymbolManager::popStatus();
+        else if (SymbolManager::topStatus() == SymbolManager::BREAK) {
+            SymbolManager::popStatus();
+            break;
+        }
+        else if (SymbolManager::topStatus() == SymbolManager::RETURN) {
+            SymbolManager::popFunc();
+            return result;
+        }
         exp = left_->eval();
     }
     SymbolManager::popStatus();
@@ -643,7 +687,7 @@ Element FuncDecl::eval() {
         exit(EXIT_FAILURE);
     }
     for (const auto & ast: parameters_)
-        if (ast.type_ != 'N') {
+        if (ast->type_ != 'N') {
             std::cerr << "invalid parameters in func: " << name_ << std::endl;
             exit(EXIT_FAILURE);
         }

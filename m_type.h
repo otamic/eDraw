@@ -66,9 +66,11 @@ public:
     static void addF(const std::string & name, const AstPtr & func);
     static void popLayerF();
 
-    enum Status { WHILE, FUNC };
+    enum Status { MAIN, WHILE, FUNC, CONTINUE, BREAK, RETURN };
     static void addStatus(Status status) { status_.push_back(status); }
     static Status topStatus() { return status_.back(); }
+    static bool checkFunc();
+    static void popFunc();
     static void popStatus() { status_.pop_back(); }
 private:
     static std::vector<SymbolTable> symbolTables_;
@@ -104,7 +106,7 @@ public:
 
     friend std::ostream& operator<<(std::ostream& os, const Element & element);
 
-    enum Type {NUM, ARRAY, BOOL, CONTINUE, BREAK} type_;
+    enum Type {NUM, ARRAY, BOOL} type_;
     struct {
         int n_;
         Array a_;
@@ -203,10 +205,10 @@ public:
 class FuncDecl : public Ast {
 public:
     std::string name_;
-    std::vector<Ast> parameters_;
+    std::vector<AstPtr> parameters_;
     AstPtr contain_;
 
-    FuncDecl(const std::string& name, std::vector<Ast> params, AstPtr cont):Ast('F', std::move(cont), nullptr), parameters_(std::move(params)) {}
+    FuncDecl(const std::string& name, std::vector<AstPtr> params, AstPtr cont):Ast('F', std::move(cont), nullptr), parameters_(std::move(params)) {}
     Element eval();
 };
 
