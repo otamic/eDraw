@@ -395,6 +395,17 @@ Element Element::operator||(const Element &a) {
     return result;
 }
 
+Element Element::operator%(const Element &a) {
+    Element result;
+    result.type_ = NUM;
+    if (!(type_ == NUM || type_ == ARRAY) && !(a.type_ == NUM || type_ == ARRAY)) {
+        std::cerr << "bad operate mod" << std::endl;
+        exit(EXIT_FAILURE);
+    }
+    result.n_ = int(*this) % int(a);
+    return result;
+}
+
 Element &Element::operator=(const Element &a) {
     type_ = a.type_;
     switch (type_) {
@@ -433,6 +444,7 @@ Element Ast::eval() {
         case '-': return left_->eval() - right_->eval();
         case '*': return left_->eval() * right_->eval();
         case '/': return left_->eval() / right_->eval();
+        case '%': return left_->eval() % right_->eval();
         case '1': return left_->eval() > right_->eval();
         case '2': return left_->eval() < right_->eval();
         case '3': return left_->eval() != right_->eval();

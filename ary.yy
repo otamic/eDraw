@@ -39,7 +39,7 @@
 %nonassoc <num> CMP
 %right '='
 %left '+' '-' OR
-%left '*' '/' AND
+%left '*' '/' '%' AND
 %type <ast> expression postfix_expression primary_expression declaration statement statement_list initializer bool_expression cmp_expression compound_statement
 %type <ast> jump_statements
 %type <array> expression_list
@@ -104,6 +104,7 @@ expression
     | expression '-' expression { $$ = new Ast('-', std::shared_ptr<Ast>($1), std::shared_ptr<Ast>($3)); }
     | expression '*' expression { $$ = new Ast('*', std::shared_ptr<Ast>($1), std::shared_ptr<Ast>($3)); }
     | expression '/' expression { $$ = new Ast('/', std::shared_ptr<Ast>($1), std::shared_ptr<Ast>($3)); }
+    | expression '%' expression { $$ = new Ast('%', std::shared_ptr<Ast>($1), std::shared_ptr<Ast>($3)); }
     | '(' expression ')' { $$ = $2; }
     | postfix_expression { $$ = $1; }
     | postfix_expression '=' expression { $$ = new SymAsgn(std::shared_ptr<Ast>($1), std::shared_ptr<Ast>($3)); }

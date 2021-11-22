@@ -98,6 +98,7 @@ public:
     Element operator<=(const Element & a);
     Element operator&&(const Element & a);
     Element operator||(const Element & a);
+    Element operator%(const Element & a);
 
     Element& operator=(const Element & a);
 

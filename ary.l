@@ -35,7 +35,8 @@
 "," |
 "=" |
 "{" |
-"}" { return yytext[0]; }
+"}" |
+"%" { return yytext[0]; }
 
 ">"  { yylval->num = '1'; return token::CMP; }
 "<"  { yylval->num = '2'; return token::CMP; }
