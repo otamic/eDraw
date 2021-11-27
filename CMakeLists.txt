@@ -5,6 +5,7 @@ set(CMAKE_CXX_STANDARD 17)
 
 find_package(BISON)
 find_package(FLEX)
+find_package(OpenGL REQUIRED)
 
 BISON_TARGET(
         Parser
@@ -18,6 +19,14 @@ FLEX_TARGET(
 
 ADD_FLEX_BISON_DEPENDENCY(Lexer Parser)
 
-include_directories(${CMAKE_CURRENT_SOURCE_DIR} ${CMAKE_CURRENT_BINARY_DIR})
+include_directories(
+        ${CMAKE_CURRENT_SOURCE_DIR}
+        ${CMAKE_CURRENT_BINARY_DIR}
+        ${GLUT_INCLUDE_DIR}
+        ${OPENGL_INCLUDE_DIR}
+        "libraries/includes"
+)
+find_library(GLFW_LIB libglfw.3.dylib "libraries/libs")
 
-add_executable(array ${BISON_Parser_OUTPUTS} ${FLEX_Lexer_OUTPUTS} m_type.h m_type.cpp m_scanner.h m_driver.h m_driver.cpp main.cpp)
+add_executable(array ${BISON_Parser_OUTPUTS} ${FLEX_Lexer_OUTPUTS} m_type.h m_type.cpp m_scanner.h m_driver.h m_driver.cpp main.cpp glad.c)
+target_link_libraries(array ${OPENGL_LIBRARY} ${GLFW_LIB})

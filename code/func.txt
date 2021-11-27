@@ -1,0 +1,55 @@
+print time()
+
+func mul(a) {
+    return a * a
+}
+print mul(10)
+
+func isOdd(num) {
+    return (num % 2) == 0
+}
+print isOdd(2)
+print isOdd(3)
+
+func fill(array, len) {
+    i := 0
+    while i < len {
+        array[i] = 255
+        i = i + 1
+    }
+}
+color := int[3]
+print color
+fill(color, 3)
+print color
+
+func isPrime(num) {
+    i := 2
+    while i < num {
+        if num % i == 0 {
+            print i
+            return false
+        }
+        i = i + 1
+    }
+    return true
+}
+print isPrime(9)
+print isPrime(13)
+print isPrime(169)
+print isPrime(11111)
+
+print [1, 2, 3]
+a := int[3]
+a[2] = 255
+b := [a, a, a]
+print b
+a[0] = 255
+print a
+print b
+b[0] = a
+print b
+print [ [0, 0], [0, 0] ]
+
+print time()
+

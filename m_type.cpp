@@ -9,6 +9,8 @@
 #include <memory>
 #include <cstdarg>
 
+#include <GLFW/glfw3.h>
+
 NumList ConvertList(const std::vector<AstPtr>& from) {
     NumList res;
     for (const auto& ast: from) {
@@ -194,6 +196,13 @@ ElePtr SymbolManager::lookup(const std::string &name) {
             result = (*it)[name];
             break;
         }
+    return result;
+}
+
+ElePtr SymbolManager::lookupTop(const std::string &name) {
+    ElePtr result = nullptr;
+    if (symbolTables_.back().find(name) != symbolTables_.back().end())
+        result = symbolTables_.back()[name];
     return result;
 }
 
@@ -536,7 +545,7 @@ Element NumArray::eval() {
 Element SymRef::eval() {
     symbol_ = SymbolManager::lookup(name_);
     if (symbol_ == nullptr) {
-        std::cerr << "can't refer to a uninitialized variable" << std::endl;
+        std::cerr << "can't refer to a uninitialized variable: " << name_ << std::endl;
         exit(1);
     }
     return *symbol_;
@@ -609,7 +618,7 @@ Element SymAsgn::eval() {
 }
 
 Element SymDecl::eval() {
-    auto symbol = SymbolManager::lookup(name_);
+    auto symbol = SymbolManager::lookupTop(name_);
     if (symbol != nullptr) {
         std::cerr << "this variable has been used: " << name_ << std::endl;
         exit(1);
@@ -766,6 +775,16 @@ Element ArrayPack::eval() {
             *array.at(EvalVec(1, i)) = temp.a_;
         }
         result.a_(array);
+    }
+    return result;
+}
+
+Element InnerCall::eval() {
+    Element result;
+    switch(type_) {
+        case TIME:
+            result.type_ = Element::NUM;
+            result.n_ = int(glfwGetTime() * 1000);
     }
     return result;
 }

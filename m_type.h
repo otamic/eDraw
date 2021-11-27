@@ -57,6 +57,7 @@ typedef std::shared_ptr<Ast> AstPtr;
 class SymbolManager {
 public:
     static ElePtr lookup(const std::string & name);
+    static ElePtr lookupTop(const std::string &name);
     static void addLayer();
     static void add(const std::string & name, const ElePtr & symbol);
     static void popLayer();
@@ -228,6 +229,15 @@ public:
     Element eval();
 };
 
+class InnerCall : public Ast {
+public:
+    enum Type { TIME } type_;
+
+    InnerCall(Type type): Ast('I', nullptr, nullptr), type_(type){}
+    Element eval();
+};
+
 NumList ConvertList(const std::vector<AstPtr>& from);
+NumList EvalVec(int n, ...);
 
 #endif //ARRAY_M_TYPE_H

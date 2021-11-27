@@ -34,9 +34,9 @@
 
 %token <num> NUMBER
 %token <symbol> IDENTIFIER
-%token EOL INT ASSIGN PRINT IF WHILE TRUE FALSE FUNC BREAK CONTINUE RETURN
+%token EOL INT ASSIGN PRINT IF WHILE TRUE FALSE FUNC BREAK CONTINUE RETURN TIME
 
-%nonassoc <num> CMP
+%nonassoc <num> CMP 
 %right '='
 %left '+' '-' OR
 %left '*' '/' '%' AND
@@ -60,10 +60,10 @@ statement
     : EOL { $$ = new Ast('e', nullptr, nullptr); }
     | declaration EOL { $$ = $1; }
     | expression EOL { $$ = $1; }
-    | PRINT expression EOL { $$ = new PrintCal(std::shared_ptr<Ast>($2)); }
     | IF expression compound_statement { $$ = new IfSta(std::shared_ptr<Ast>($2), std::shared_ptr<Ast>($3)); }
     | WHILE expression compound_statement { $$ = new WhileSta(std::shared_ptr<Ast>($2), std::shared_ptr<Ast>($3)); }
     | jump_statements EOL { $$ = $1; }
+    | PRINT expression EOL { $$ = new PrintCal(std::shared_ptr<Ast>($2)); }
     ;
 
 declaration
@@ -117,6 +117,7 @@ expression
     | postfix_expression '=' expression { $$ = new SymAsgn(std::shared_ptr<Ast>($1), std::shared_ptr<Ast>($3)); }
     | IDENTIFIER '(' expression_list ')' { $$ = new FuncCall(*$1, *$3); delete $1; delete $3; }
     | '[' expression_list ']' { $$ = new ArrayPack(*$2); delete $2; }
+    | TIME '(' ')' { $$ = new InnerCall(InnerCall::Type::TIME); }
     ;
 
 bool_expression
