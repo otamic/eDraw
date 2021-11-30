@@ -136,7 +136,9 @@ public:
 class NumArray : public Ast {
 public:
     Array value_;
+    std::vector<AstPtr> size_;
 
+    NumArray(std::vector<AstPtr> size):Ast('A', nullptr, nullptr), size_(std::move(size)) {}
     explicit NumArray(const Array& value):Ast('A', nullptr, nullptr), value_(value) {}
     Element eval();
 };
@@ -208,6 +210,7 @@ public:
     std::string name_;
     std::vector<AstPtr> parameters_;
 
+    FuncDecl(std::string name, AstPtr cont):Ast('F', std::move(cont), nullptr), name_(std::move(name)) {}
     FuncDecl(std::string  name, std::vector<AstPtr> params, AstPtr cont):Ast('F', std::move(cont), nullptr), name_(std::move(name)), parameters_(std::move(params)) {}
     Element eval();
 };
@@ -217,7 +220,8 @@ public:
     std::string name_;
     std::vector<AstPtr> parameters_;
 
-    FuncCall(std::string  name, std::vector<AstPtr> params):Ast('C', nullptr, nullptr), name_(std::move(name)), parameters_(std::move(params)) {}
+    FuncCall(std::string name):Ast('C', nullptr, nullptr), name_(std::move(name)) {}
+    FuncCall(std::string name, std::vector<AstPtr> params):Ast('C', nullptr, nullptr), name_(std::move(name)), parameters_(std::move(params)) {}
     Element eval();
 };
 

@@ -1,0 +1,289 @@
+// shapes := int[7, 4, 16]
+// I shape 0
+// J shape 1
+// L shape 2
+// O shape 3
+// Z shape 4
+// T shape 5
+// S shape 6
+// 4 rotation state
+
+shapes := [ \
+    [ [ 0, 0, 0, 0, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0 ], \
+      [ 0, 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0 ], \
+      [ 0, 0, 0, 0, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0 ], \
+      [ 0, 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0 ] ], \
+    [ [ 0, 1, 0, 0, 0, 1, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0 ], \
+      [ 1, 0, 0, 0, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0 ], \
+      [ 1, 1, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0 ], \
+      [ 1, 1, 1, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0 ] ], \
+    [ [ 1, 0, 0, 0, 1, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0 ], \
+      [ 0, 0, 1, 0, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0 ], \
+      [ 1, 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0 ], \
+      [ 1, 1, 1, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 ] ], \
+    [ [ 1, 1, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 ], \
+      [ 1, 1, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 ], \
+      [ 1, 1, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 ], \
+      [ 1, 1, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 ] ], \
+    [ [ 1, 1, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0 ], \
+      [ 0, 1, 0, 0, 1, 1, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0 ], \
+      [ 1, 1, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0 ], \
+      [ 0, 1, 0, 0, 1, 1, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0 ] ], \
+    [ [ 0, 1, 0, 0, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0 ], \
+      [ 0, 1, 0, 0, 0, 1, 1, 0, 0, 1, 0, 0, 0, 0, 0, 0 ], \
+      [ 0, 0, 0, 0, 1, 1, 1, 0, 0, 1, 0, 0, 0, 0, 0, 0 ], \
+      [ 0, 1, 0, 0, 1, 1, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0 ] ], \
+    [ [ 0, 1, 1, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 ], \
+      [ 1, 0, 0, 0, 1, 1, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0 ], \
+      [ 0, 1, 1, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 ], \
+      [ 1, 0, 0, 0, 1, 1, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0 ] ] ]
+
+// colors
+BLACK := [0, 0, 0]
+WHITE := [255, 255, 255]
+RED   := [255, 0, 0]
+GREEN := [0, 255, 0]
+BLUE  := [0, 0, 255]
+YELLOW := [255, 255, 0]
+colors := [RED, GREEN, BLUE]
+
+// global variable
+HEIGHT := 22
+WIDTH  := 12
+
+temp_window := int[HEIGHT, WIDTH, 3]
+background := int[HEIGHT, WIDTH, 3]
+
+map := int[HEIGHT, WIDTH]
+pos_x := 1
+pos_y := 1
+
+tetris_type := 0
+rotate_state := 0
+color := RED
+
+reset := false
+restart := false
+
+func collision_detect() {
+    i := 0
+    while i < 4 {
+        j := 0
+        while j < 4 {
+            if shapes[tetris_type, rotate_state, i * 4 + j] == 1 {
+                if map[pos_y + i, pos_x + j] == 1 {
+                    return true
+                }
+            }
+            j = j + 1
+        }
+        i = i + 1
+    }
+    return false
+}
+
+rand_core := 1231
+
+func rand(num) {
+    rand_core = (rand_core * 1231 + time()) % 100001
+    return rand_core % num
+}
+
+func ini_tetris() {
+    pos_x = 4
+    pos_y = 18
+
+    tetris_type = rand(7)
+    rotate_state = rand(4)
+    color = colors[rand(3)]
+
+    if collision_detect() {
+        restart = true
+    }
+}
+
+func init() {
+    // initialize background and map
+    i := 0
+    while i < HEIGHT {
+        j := 0
+        while j < WIDTH {
+            background[i, j] = BLACK
+            map[i, j] = 0
+            j = j + 1
+        }
+        i = i + 1
+    }
+    i = 0
+    while i < HEIGHT {
+        background[i, 0] = background[i, WIDTH - 1] = YELLOW
+        map[i, 0] = map[i, WIDTH - 1] = 1
+        i = i + 1
+    }
+    i = 1
+    while i < WIDTH - 1 {
+        background[0, i] = YELLOW
+        map[0, i] = 1
+        i = i + 1
+    }
+    // initialize tetris parameters
+    ini_tetris()
+}
+
+func rotate() {
+    temp := rotate_state
+    rotate_state = (rotate_state + 1) % 4
+    if collision_detect() {
+        rotate_state = temp
+    }
+}
+
+func left() {
+    pos_x = pos_x - 1
+    if collision_detect() {
+        pos_x = pos_x + 1
+    }
+}
+
+func right() {
+    pos_x = pos_x + 1
+    if collision_detect() {
+        pos_x = pos_x - 1
+    }
+}
+
+func fall() {
+    pos_y = pos_y - 1
+    if collision_detect() {
+        reset = true
+        pos_y = pos_y + 1
+    }
+}
+
+func add_to_map() {
+    i := 0
+    while i < 4 {
+        j := 0
+        while j < 4 {
+            if shapes[tetris_type, rotate_state, i * 4 + j] == 1 {
+                map[pos_y + i, pos_x + j] = 1
+            }
+            j = j + 1
+        }
+        i = i + 1
+    }
+}
+
+func clear_lines() {
+    yy := 1
+    while yy < HEIGHT - 1 {
+        c := 0
+        xx := 1
+        while xx < WIDTH - 1 {
+            if map[yy, xx] == 1 {
+                c = c + 1
+                if c == WIDTH - 2 {
+                    cy := yy
+                    while cy < HEIGHT - 2 {
+                        map[cy] = map[cy + 1]
+                        cy = cy + 1
+                    }
+                }
+            }
+            xx = xx + 1
+        }
+        yy = yy + 1
+    }
+}
+
+func render() {
+    // draw background
+    temp_window = background
+    // draw map
+    i := 1
+    while i < HEIGHT {
+        j := 1
+        while j < WIDTH - 1 {
+            if map[i, j] == 1 {
+                temp_window[i, j] = WHITE
+            }
+            j = j + 1
+        }
+        i = i + 1
+    }
+    // draw tetris
+    i = 0
+    while i < 4 {
+        j := 0
+        while j < 4 {
+            if shapes[tetris_type, rotate_state, i * 4 + j] == 1 {
+                temp_window[pos_y + i, pos_x + j] = color
+            }
+            j = j + 1
+        }
+        i = i + 1
+    }
+    // draw back to window
+    WINDOW = temp_window
+}
+
+last_key := int[6]
+func update_keys() {
+    last_key[KEY_W] = KEYBOARD[KEY_W]
+    last_key[KEY_S] = KEYBOARD[KEY_S]
+    last_key[KEY_A] = KEYBOARD[KEY_A]
+    last_key[KEY_D] = KEYBOARD[KEY_D]
+}
+
+// start
+init()
+
+// main loop
+fall_time := 10
+iter := 0
+
+last_time := time()
+while KEYBOARD[KEY_ESC] != KEY_DOWN {
+
+    current_time := time()
+    if (current_time - last_time) < 33 {
+        continue
+    }
+    last_time = current_time
+
+    if KEYBOARD[KEY_W] == KEY_UP and last_key[KEY_W] == KEY_DOWN {
+        rotate()
+    }
+    if KEYBOARD[KEY_S] == KEY_UP and last_key[KEY_S] == KEY_DOWN  {
+        fall()
+    }
+    if KEYBOARD[KEY_A] == KEY_UP and last_key[KEY_A] == KEY_DOWN {
+        left()
+    }
+    if KEYBOARD[KEY_D] == KEY_UP and last_key[KEY_D] == KEY_DOWN {
+        right()
+    }
+
+    update_keys()
+
+    iter = iter + 1
+    if iter == fall_time {
+        fall()
+        iter = 0
+    }
+
+    clear_lines()
+
+    if reset {
+        add_to_map()
+        ini_tetris()
+        reset = false
+    }
+
+    if restart {
+        init()
+        restart = false
+    }
+
+    render()
+}

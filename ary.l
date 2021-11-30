@@ -68,6 +68,7 @@
 
 [_a-zA-Z][_a-zA-Z0-9]* { yylval->symbol = new std::string(yytext); return token::IDENTIFIER; }
 [0-9]+ { yylval->num = atoi(yytext); return token::NUMBER; }
+"\\\n" { loc->lines(1); }
 \n { loc->lines(1); return token::EOL; }
 "//".* |
 [ \t] { loc->step(); }

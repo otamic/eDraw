@@ -71,6 +71,10 @@ declaration
         $$ = new SymDecl(*$1, std::shared_ptr<Ast>($3));
         delete $1;
     } 
+    | FUNC IDENTIFIER '(' ')' compound_statement {
+        $$ = new FuncDecl(*$2, std::shared_ptr<Ast>($5)); 
+        delete $2; 
+    }
     | FUNC IDENTIFIER '(' expression_list ')' compound_statement { 
         $$ = new FuncDecl(*$2, *$4, std::shared_ptr<Ast>($6)); 
         delete $2; 
@@ -80,7 +84,7 @@ declaration
 
 initializer
     : expression { $$ = $1; }
-    | INT '[' expression_list ']' { $$ = new NumArray(Array(ConvertList(*$3))); delete $3; }
+    | INT '[' expression_list ']' { $$ = new NumArray(*$3); delete $3; }
     ;
 
 compound_statement
@@ -115,6 +119,7 @@ expression
     | '(' expression ')' { $$ = $2; }
     | postfix_expression { $$ = $1; }
     | postfix_expression '=' expression { $$ = new SymAsgn(std::shared_ptr<Ast>($1), std::shared_ptr<Ast>($3)); }
+    | IDENTIFIER '(' ')' { $$ = new FuncCall(*$1); delete $1; }
     | IDENTIFIER '(' expression_list ')' { $$ = new FuncCall(*$1, *$3); delete $1; delete $3; }
     | '[' expression_list ']' { $$ = new ArrayPack(*$2); delete $2; }
     | TIME '(' ')' { $$ = new InnerCall(InnerCall::Type::TIME); }

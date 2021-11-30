@@ -7,8 +7,8 @@
 
 #include "m_driver.h"
 
-int WINDOW_WIDTH = 80;
-int WINDOW_HEIGHT = 80;
+int WINDOW_WIDTH = 12;
+int WINDOW_HEIGHT = 22;
 ArrayPtr WINDOW = std::make_shared<Array>(EvalVec(3, 3, WINDOW_WIDTH, WINDOW_HEIGHT));
 float * vertices;
 long bufferSize;
@@ -30,8 +30,8 @@ void init();
 void destroy();
 void getVertices();
 
-const unsigned int SCR_WIDTH = 800;
-const unsigned int SCR_HEIGHT = 800;
+const unsigned int SCR_WIDTH = WINDOW_WIDTH * 30;
+const unsigned int SCR_HEIGHT = WINDOW_HEIGHT * 30;
 
 #define STRINGIFY(A) #A
 
@@ -72,6 +72,7 @@ void start(int argc, const char ** argv) {
         SymDecl("KEY_D", std::make_shared<Num>(4)).eval();
         SymDecl("KEY_SPACE", std::make_shared<Num>(5)).eval();
         SymDecl("KEY_DOWN", std::make_shared<Num>(1)).eval();
+        SymDecl("KEY_UP", std::make_shared<Num>(0)).eval();
 
         MC::Driver driver;
         if (std::strncmp(argv[1], "-o", 2) == 0)

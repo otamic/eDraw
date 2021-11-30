@@ -61,7 +61,7 @@ ArrayPtr Array::at(const NumList & index) {
         return res;
     }
     std::cout << "invalid index" << std::endl;
-    return nullptr;
+    exit(EXIT_FAILURE);
 }
 
 Array& Array::operator=(const Array & a) {
@@ -537,6 +537,8 @@ Element Num::eval() {
 
 Element NumArray::eval() {
     Element result;
+    if (!size_.empty())
+        value_(Array(ConvertList(size_)));
     result.type_ = Element::ARRAY;
     result.a_(value_);
     return result;
