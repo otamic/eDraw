@@ -34,7 +34,7 @@
 
 %token <num> NUMBER
 %token <symbol> IDENTIFIER
-%token EOL INT ASSIGN PRINT IF WHILE TRUE FALSE FUNC BREAK CONTINUE RETURN TIME
+%token EOL INT ASSIGN PRINT IF WHILE TRUE FALSE FUNC BREAK CONTINUE RETURN TIME WINSIZE
 
 %nonassoc <num> CMP 
 %right '='
@@ -80,6 +80,7 @@ declaration
         delete $2; 
         delete $4; 
     }
+    | WINSIZE '(' primary_expression ',' primary_expression ')' { $$ = new Ast('w', std::shared_ptr<Ast>($3), std::shared_ptr<Ast>($5)); }
     ;
 
 initializer

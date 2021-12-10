@@ -1,3 +1,8 @@
+// initialize window
+HEIGHT := 22
+WIDTH  := 12
+WINSIZE(HEIGHT, WIDTH)
+
 // shapes := int[7, 4, 16]
 // I shape 0
 // J shape 1
@@ -48,9 +53,6 @@ YELLOW := [255, 255, 0]
 colors := [RED, GREEN, BLUE]
 
 // global variable
-HEIGHT := 22
-WIDTH  := 12
-
 temp_window := int[HEIGHT, WIDTH, 3]
 background := int[HEIGHT, WIDTH, 3]
 

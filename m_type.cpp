@@ -8,6 +8,8 @@
 #include <stack>
 #include <memory>
 #include <cstdarg>
+#include <thread>
+#include <chrono>
 
 #include <GLFW/glfw3.h>
 
@@ -212,6 +214,14 @@ void SymbolManager::addLayer() {
 
 void SymbolManager::add(const std::string &name, const ElePtr &symbol) {
     symbolTables_.back()[name] = symbol;
+}
+
+void SymbolManager::del(const std::string &name) {
+    for (auto it = symbolTables_.rbegin(); it != symbolTables_.rend(); ++it)
+        if ((*it).find(name) != (*it).end()) {
+            it->erase(name);
+            break;
+        }
 }
 
 void SymbolManager::popLayer() {
@@ -524,6 +534,12 @@ Element Ast::eval() {
                 return left_->eval();
             return EMPTY;
         }
+
+        case 'w':
+            WINDOW_HEIGHT = (int)left_->eval();
+            WINDOW_WIDTH = (int)right_->eval();
+            std::this_thread::sleep_for(std::chrono::milliseconds (100));
+            return EMPTY;
         default : return {};
     }
 }

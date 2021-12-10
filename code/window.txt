@@ -1,3 +1,5 @@
+WINSIZE(80, 80)
+
 tempWindow := int[80, 80, 3]
 
 func drawPlane(window, y, x) {

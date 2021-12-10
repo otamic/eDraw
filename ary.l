@@ -66,6 +66,8 @@
 "continue" { return token::CONTINUE; }
 "return" { return token::RETURN; }
 
+"WINSIZE" { return token::WINSIZE; }
+
 [_a-zA-Z][_a-zA-Z0-9]* { yylval->symbol = new std::string(yytext); return token::IDENTIFIER; }
 [0-9]+ { yylval->num = atoi(yytext); return token::NUMBER; }
 "\\\n" { loc->lines(1); }

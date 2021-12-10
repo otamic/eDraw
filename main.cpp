@@ -7,7 +7,7 @@
 
 #include "m_driver.h"
 
-int WINDOW_WIDTH = 12;
+int WINDOW_WIDTH = 2;
 int WINDOW_HEIGHT = 22;
 ArrayPtr WINDOW;
 float * vertices;
@@ -112,10 +112,24 @@ int main(const int argc, const char **argv) {
     }
 
     init();
+    int last_window_height = WINDOW_HEIGHT, last_window_width = WINDOW_WIDTH;
 
     std::thread(start, argc, argv).detach();
 
     while (!glfwWindowShouldClose(window)) {
+
+        if (last_window_height != WINDOW_HEIGHT || last_window_width != WINDOW_WIDTH) {
+            last_window_height = WINDOW_HEIGHT;
+            last_window_width = WINDOW_WIDTH;
+
+            destroy();
+            init();
+
+            SymbolManager::del("WINDOW");
+            SymDecl("WINDOW", std::make_shared<NumArray>(*WINDOW)).eval();
+
+            glfwSetWindowSize(window, SCR_WIDTH, SCR_HEIGHT);
+        }
 
         processInput(window);
 
@@ -211,6 +225,12 @@ unsigned int compileProgram(const char* vSource, const char* fSource) {
 
 void init() {
     WINDOW = std::make_shared<Array>(EvalVec(3, 3, WINDOW_WIDTH, WINDOW_HEIGHT));
+
+    // update scr_xxx, need to update
+    int larger = WINDOW_WIDTH > WINDOW_HEIGHT ? WINDOW_WIDTH : WINDOW_HEIGHT;
+    int len = 500 / larger;
+    SCR_HEIGHT = len * WINDOW_HEIGHT;
+    SCR_WIDTH = len * WINDOW_WIDTH;
 
     vertices = new float[WINDOW_HEIGHT * WINDOW_WIDTH * 2 * 3 * 6];
     bufferSize = WINDOW_HEIGHT * WINDOW_WIDTH * 2 * 3 * 6 * sizeof(float);

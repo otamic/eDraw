@@ -63,6 +63,7 @@ public:
     static ElePtr lookupTop(const std::string &name);
     static void addLayer();
     static void add(const std::string & name, const ElePtr & symbol);
+    static void del(const std::string & name);
     static void popLayer();
 
     static AstPtr lookupF(const std::string & name);
