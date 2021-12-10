@@ -11,6 +11,9 @@
 #include <string>
 #include <map>
 
+extern int WINDOW_WIDTH;
+extern int WINDOW_HEIGHT;
+
 class Array;
 
 typedef std::vector<int> NumList;

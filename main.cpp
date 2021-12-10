@@ -9,7 +9,7 @@
 
 int WINDOW_WIDTH = 12;
 int WINDOW_HEIGHT = 22;
-ArrayPtr WINDOW = std::make_shared<Array>(EvalVec(3, 3, WINDOW_WIDTH, WINDOW_HEIGHT));
+ArrayPtr WINDOW;
 float * vertices;
 long bufferSize;
 
@@ -21,6 +21,8 @@ long bufferSize;
 #define KEY_SPACE 5
 ArrayPtr KEYBOARD = std::make_shared<Array>(EvalVec(1, 6));
 
+unsigned int VAO, VBO, shaderProgram;
+
 void framebuffer_size_callback(GLFWwindow* window, int width, int height);
 void processInput(GLFWwindow* window);
 
@@ -30,8 +32,8 @@ void init();
 void destroy();
 void getVertices();
 
-const unsigned int SCR_WIDTH = WINDOW_WIDTH * 30;
-const unsigned int SCR_HEIGHT = WINDOW_HEIGHT * 30;
+unsigned int SCR_WIDTH = WINDOW_WIDTH * 30;
+unsigned int SCR_HEIGHT = WINDOW_HEIGHT * 30;
 
 #define STRINGIFY(A) #A
 
@@ -86,8 +88,6 @@ void start(int argc, const char ** argv) {
 }
 
 int main(const int argc, const char **argv) {
-    init();
-
     glfwInit();
     glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
@@ -111,25 +111,7 @@ int main(const int argc, const char **argv) {
         return -1;
     }
 
-    unsigned int shaderProgram = compileProgram(vertexShaderSource, fragmentShaderSource);
-
-    unsigned int VBO, VAO;
-    glGenVertexArrays(1, &VAO);
-    glGenBuffers(1, &VBO);
-
-    glBindVertexArray(VAO);
-
-    glBindBuffer(GL_ARRAY_BUFFER, VBO);
-    glBufferData(GL_ARRAY_BUFFER, bufferSize, nullptr, GL_STATIC_DRAW);
-
-    // position
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)0);
-    glEnableVertexAttribArray(0);
-    // color
-    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)(3 * sizeof(float)));
-    glEnableVertexAttribArray(1);
-
-    glUseProgram(shaderProgram);
+    init();
 
     std::thread(start, argc, argv).detach();
 
@@ -155,15 +137,12 @@ int main(const int argc, const char **argv) {
         glfwPollEvents();
     }
 
-    std::this_thread::sleep_for(std::chrono::milliseconds (1000));
+    std::this_thread::sleep_for(std::chrono::milliseconds (100));
 
-    glDeleteVertexArrays(1, &VAO);
-    glDeleteBuffers(1, &VBO);
-    glDeleteProgram(shaderProgram);
+    destroy();
 
     glfwTerminate();
 
-    destroy();
     return 0;
 }
 
@@ -231,11 +210,35 @@ unsigned int compileProgram(const char* vSource, const char* fSource) {
 }
 
 void init() {
+    WINDOW = std::make_shared<Array>(EvalVec(3, 3, WINDOW_WIDTH, WINDOW_HEIGHT));
+
     vertices = new float[WINDOW_HEIGHT * WINDOW_WIDTH * 2 * 3 * 6];
     bufferSize = WINDOW_HEIGHT * WINDOW_WIDTH * 2 * 3 * 6 * sizeof(float);
+
+    shaderProgram = compileProgram(vertexShaderSource, fragmentShaderSource);
+
+    glGenVertexArrays(1, &VAO);
+    glGenBuffers(1, &VBO);
+
+    glBindVertexArray(VAO);
+
+    glBindBuffer(GL_ARRAY_BUFFER, VBO);
+    glBufferData(GL_ARRAY_BUFFER, bufferSize, nullptr, GL_STATIC_DRAW);
+
+    // position
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)0);
+    glEnableVertexAttribArray(0);
+    // color
+    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)(3 * sizeof(float)));
+    glEnableVertexAttribArray(1);
+
+    glUseProgram(shaderProgram);
 }
 
 void destroy() {
+    glDeleteVertexArrays(1, &VAO);
+    glDeleteBuffers(1, &VBO);
+    glDeleteProgram(shaderProgram);
     delete[] vertices;
 }
 
