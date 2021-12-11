@@ -538,7 +538,7 @@ Element Ast::eval() {
         case 'w':
             WINDOW_HEIGHT = (int)left_->eval();
             WINDOW_WIDTH = (int)right_->eval();
-            std::this_thread::sleep_for(std::chrono::milliseconds (100));
+            std::this_thread::sleep_for(std::chrono::milliseconds (200));
             return EMPTY;
         default : return {};
     }

@@ -14,7 +14,7 @@ BISON_TARGET(
 
 FLEX_TARGET(
         Lexer
-        ary.l ${CMAKE_CURRENT_BINARY_DIR}/ary.lex.cpp
+        ary_zh.l ${CMAKE_CURRENT_BINARY_DIR}/ary.lex.cpp
 )
 
 ADD_FLEX_BISON_DEPENDENCY(Lexer Parser)
