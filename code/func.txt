@@ -27,12 +27,21 @@ func isPrime(num) {
     i := 2
     while i < num {
         if num % i == 0 {
-            print i
             return false
         }
         i = i + 1
     }
     return true
+}
+prime := int[1000]
+count := 0
+i := 2
+while i < 1000 {
+    if isPrime(i) {
+        prime[count] = i
+        count = count + 1
+    }
+    i = i + 1
 }
 print isPrime(9)
 print isPrime(13)
