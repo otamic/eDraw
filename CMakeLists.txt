@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.20)
-project(array)
+project(eDraw)
 
 set(CMAKE_CXX_STANDARD 17)
 
@@ -28,5 +28,5 @@ include_directories(
 )
 find_library(GLFW_LIB libglfw.3.dylib "libraries/libs")
 
-add_executable(array ${BISON_Parser_OUTPUTS} ${FLEX_Lexer_OUTPUTS} m_type.h m_type.cpp m_scanner.h m_driver.h m_driver.cpp main.cpp glad.c)
-target_link_libraries(array ${OPENGL_LIBRARY} ${GLFW_LIB})
+add_executable(eDraw ${BISON_Parser_OUTPUTS} ${FLEX_Lexer_OUTPUTS} m_type.h m_type.cpp m_scanner.h m_driver.h m_driver.cpp main.cpp glad.c)
+target_link_libraries(eDraw ${OPENGL_LIBRARY} ${GLFW_LIB})
