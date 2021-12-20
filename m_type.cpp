@@ -39,6 +39,7 @@ Array::Array(const NumList & size): size_(size), bias_(0) {
     int length = 1;
     for (int num: size) length *= num;
     data_ = std::shared_ptr<int[]>(new int[length]);
+    for (int i = 0; i < length; i++) data_[i] = 0;
 }
 
 ArrayPtr Array::at(const NumList & index) {
