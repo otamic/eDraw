@@ -695,6 +695,39 @@ Element WhileSta::eval() {
     return EMPTY;
 }
 
+Element ForSta::eval() {
+    if(left_->type_ != 'D') {
+        std::cerr << "the first scope of the for statement must be a declaration" << std::endl;
+        exit(1);
+    }
+    SymbolManager::addLayer();
+    left_->eval();
+    Element exp = right_->eval();
+    if (exp.type_ != Element::BOOL) {
+        std::cerr << "invalid for statement" << std::endl;
+        exit(1);
+    }
+    SymbolManager::addStatus(SymbolManager::WHILE);
+    while (exp.n_ == 1) {
+        Element result = _statements->eval();
+        if (SymbolManager::topStatus() == SymbolManager::CONTINUE)
+            SymbolManager::popStatus();
+        else if (SymbolManager::topStatus() == SymbolManager::BREAK) {
+            SymbolManager::popStatus();
+            break;
+        }
+        else if (SymbolManager::topStatus() == SymbolManager::RETURN) {
+            SymbolManager::popFunc();
+            return result;
+        }
+        _expression->eval();
+        exp = right_->eval();
+    }
+    SymbolManager::popStatus();
+    SymbolManager::popLayer();
+    return EMPTY;
+}
+
 Element CpdSta::eval() {
     SymbolManager::addLayer();
     Element result = left_->eval();

@@ -45,7 +45,8 @@ N2      {SP}|{U2}{U}|{U3}{U}{U}|{U4}{U}{U}{U}
 "=" |
 "{" |
 "}" |
-"%" { return yytext[0]; }
+"%" |
+";" { return yytext[0]; }
 
 ">"  { yylval->num = '1'; return token::CMP; }
 "<"  { yylval->num = '2'; return token::CMP; }
@@ -67,7 +68,7 @@ N2      {SP}|{U2}{U}|{U3}{U}{U}|{U4}{U}{U}{U}
 "若" |
 "if" { return token::IF; }
 "当" |
-"while" { return token::WHILE; }
+"for" { return token::FOR; }
 
 "并" |
 "and" { return token::AND; }

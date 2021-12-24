@@ -16,45 +16,35 @@ func newBomb(x, y) {
 }
 
 func updateBomb(upper) {
-    i := 0
-    while i < numBomb {
+    for i := 0; i < numBomb; i = i + 1 {
         if bomb[i, 0] < upper {
             bomb[i, 0] = bomb[i, 0] + 1
         }
         if bomb[i, 0] == upper {
-            j := i
-            while j < numBomb - 1 {
+            for j := i; j < numBomb - 1; j = j + 1 {
                 bomb[j] = bomb[j + 1]
-                j = j + 1
             }
             i = i - 1
             numBomb = numBomb - 1
         }
-        i = i + 1
     }
 }
 
 func drawBomb(window, upper) {
-    i := 0
-    while i < numBomb {
+    for i := 0; i < numBomb; i = i + 1 {
         if bomb[i, 0] < upper {
             window[bomb[i, 0], bomb[i, 1]] = [0, 0, 0]
         }
-        i = i + 1
     }
 }
 
 // make a white background
 white := [255, 255, 255]
 background := int[80, 80, 3]
-i := 0
-while i < 80 {
-    j := 0
-    while j < 80 {
+for i := 0; i < 80; i = i + 1 {
+    for j := 0; j < 80; j = j + 1 {
         background[i, j] = white
-        j = j + 1
     }
-    i = i + 1
 }
 
 x := 40
@@ -62,7 +52,7 @@ y := 40
 
 // main loop
 last := time()
-while KEYBOARD[KEY_ESC] != KEY_DOWN {
+for KEYBOARD[KEY_ESC] != KEY_DOWN {
     current := time()
     if (current - last) < 33 {
         continue

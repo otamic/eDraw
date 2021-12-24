@@ -34,7 +34,7 @@
 
 %token <num> NUMBER
 %token <symbol> IDENTIFIER
-%token EOL INT ASSIGN PRINT IF WHILE TRUE FALSE FUNC BREAK CONTINUE RETURN TIME WINSIZE
+%token EOL INT ASSIGN PRINT IF WHILE TRUE FALSE FUNC BREAK CONTINUE RETURN TIME WINSIZE FOR
 
 %nonassoc <num> CMP 
 %right '='
@@ -61,7 +61,8 @@ statement
     | declaration EOL { $$ = $1; }
     | expression EOL { $$ = $1; }
     | IF expression compound_statement { $$ = new IfSta(std::shared_ptr<Ast>($2), std::shared_ptr<Ast>($3)); }
-    | WHILE expression compound_statement { $$ = new WhileSta(std::shared_ptr<Ast>($2), std::shared_ptr<Ast>($3)); }
+    | FOR expression compound_statement { $$ = new WhileSta(std::shared_ptr<Ast>($2), std::shared_ptr<Ast>($3)); }
+    | FOR declaration ';' expression ';' expression compound_statement { $$ = new ForSta(std::shared_ptr<Ast>($2), std::shared_ptr<Ast>($4), std::shared_ptr<Ast>($6), std::shared_ptr<Ast>($7)); }
     | jump_statements EOL { $$ = $1; }
     | PRINT expression EOL { $$ = new PrintCal(std::shared_ptr<Ast>($2)); }
     ;

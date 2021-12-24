@@ -197,6 +197,14 @@ public:
     Element eval();
 };
 
+class ForSta : public Ast {
+public:
+    ForSta(AstPtr declaration, AstPtr boolExpression, AstPtr expression, AstPtr statements): Ast('F', std::move(declaration), std::move(boolExpression)), _expression(std::move(expression)), _statements(std::move(statements)) {}
+    Element eval();
+
+    AstPtr _expression, _statements;
+};
+
 class CpdSta : public Ast {
 public:
     CpdSta(AstPtr statements):Ast('P', std::move(statements), nullptr) {}
